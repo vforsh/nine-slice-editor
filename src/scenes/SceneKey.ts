@@ -1,0 +1,6 @@
+export enum SceneKey {
+	GLOBAL = "GLOBAL",
+	BOOT = "BOOT",
+	PRELOADER = "PRELOADER",
+	NINE_SLICE_EDITOR = "NINE_SLICE_EDITOR",
+}
