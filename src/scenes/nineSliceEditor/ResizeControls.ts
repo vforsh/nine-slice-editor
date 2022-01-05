@@ -1,10 +1,12 @@
-import { IPatchesConfig, NinePatch } from "@koreez/phaser3-ninepatch"
+import { NinePatch } from "@koreez/phaser3-ninepatch"
 
 export enum ResizeControlsEvent {
 	RESIZE = "ResizeControls_RESIZE",
 }
 
-type ResizeControl = Phaser.GameObjects.Image
+type ResizeControl = Phaser.GameObjects.Image & { corners?: CornerControl[] }
+
+type CornerControl = Phaser.GameObjects.Ellipse
 
 export interface ResizeControlsOptions {
 	thickness: number
@@ -13,8 +15,8 @@ export interface ResizeControlsOptions {
 
 export class ResizeControls extends Phaser.GameObjects.Container {
 	
-	private readonly INACTIVE_ALPHA = 0.8
-	private readonly ACTIVE_ALPHA = 1
+	private readonly INACTIVE_TINT = 0xE1E1E1
+	private readonly ACTIVE_TINT = 0XFFFFFF
 	
 	private options: ResizeControlsOptions
 	private _top: ResizeControl
@@ -22,6 +24,11 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 	private _left: ResizeControl
 	private _right: ResizeControl
 	private controls: ResizeControl[]
+	private topLeft: CornerControl
+	private topRight: CornerControl
+	private bottomRight: CornerControl
+	private bottomLeft: CornerControl
+	private cornerControls: CornerControl[]
 	private image: NinePatch
 	
 	constructor(scene: Phaser.Scene, options: ResizeControlsOptions) {
@@ -30,6 +37,7 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		this.name = "resize-controls"
 		this.options = options
 		this.addControls()
+		this.addCornerControls()
 		this.setThickness(this.options.thickness)
 	}
 	
@@ -44,7 +52,7 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		
 		this.controls = [this._top, this._bottom, this._left, this._right]
 		this.controls.forEach((control) => {
-			control.alpha = this.INACTIVE_ALPHA
+			control.setTintFill(this.INACTIVE_TINT)
 			control.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, this.onPointerOver.bind(this, control))
 			control.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, this.onPointerOut.bind(this, control))
 			control.on(Phaser.Input.Events.DRAG_START, this.onDragStart.bind(this, control))
@@ -60,11 +68,17 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 	}
 	
 	private onPointerOver(control: ResizeControl): void {
-		control.alpha = this.ACTIVE_ALPHA
+		control.setTintFill(this.ACTIVE_TINT)
+		control.corners.forEach(corner => corner.setFillStyle(this.ACTIVE_TINT))
+		
+		this.bringToTop(control)
+		this.bringToTop(control.corners[0])
+		this.bringToTop(control.corners[1])
 	}
 	
 	private onPointerOut(control: ResizeControl): void {
-		control.alpha = this.INACTIVE_ALPHA
+		control.setTintFill(this.INACTIVE_TINT)
+		control.corners.forEach(corner => corner.setFillStyle(this.INACTIVE_TINT))
 	}
 	
 	private onDragStart(control: ResizeControl): void {
@@ -75,8 +89,8 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		let position = this.pointToContainer({ x: pointer.x, y: pointer.y }) as { x: number, y: number }
 		let center = { x: 0, y: 0 }
 		
-		let config = this.image["config"] as IPatchesConfig
-		let padding = 10
+		let config = this.image.config
+		let padding = this.options.padding
 		let minWidth = config.left + config.right + padding * 2
 		let minHeight = config.top + config.bottom + padding * 2
 		
@@ -111,6 +125,8 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		} else {
 			this.updateHorizontalLines()
 		}
+		
+		this.updateCornerPositions()
 	}
 	
 	private updateVerticalLines(): void {
@@ -132,6 +148,71 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		this.emit(ResizeControlsEvent.RESIZE, { width, height })
 	}
 	
+	private addCornerControls() {
+		this.topLeft = this.createCornerControl()
+		this.topRight = this.createCornerControl()
+		this.bottomRight = this.createCornerControl()
+		this.bottomLeft = this.createCornerControl()
+		
+		this.cornerControls = [this.topLeft, this.topRight, this.bottomRight, this.bottomLeft]
+		this.cornerControls.forEach((control) => {
+			control.setFillStyle(this.INACTIVE_TINT)
+			// control.setInteractive()
+			// control.input.cursor = "move"
+			// control.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, this.onCornerControlOver.bind(this, control))
+			// control.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, this.onCornerControlOut.bind(this, control))
+			// control.on(Phaser.Input.Events.DRAG_START, this.onCornerControlDragStart.bind(this, control))
+			// control.on(Phaser.Input.Events.DRAG, this.onCornerControlDrag.bind(this, control))
+			// control.on(Phaser.Input.Events.DRAG_END, this.onCornerControlDragEnd.bind(this, control))
+			//
+			// this.scene.input.setDraggable(control)
+		})
+		
+		this.add(this.cornerControls)
+		
+		this._top.corners = [this.topLeft, this.topRight]
+		this._right.corners = [this.topRight, this.bottomRight]
+		this._bottom.corners = [this.bottomRight, this.bottomLeft]
+		this._left.corners = [this.bottomLeft, this.topLeft]
+	}
+	
+	private createCornerControl(thickness = this.options.thickness): Phaser.GameObjects.Ellipse {
+		return this.scene.add.ellipse(0, 0, thickness, thickness, this.ACTIVE_TINT)
+	}
+	
+	private onCornerControlOver(control: CornerControl): void {
+		control.setFillStyle(this.ACTIVE_TINT)
+		this.bringToTop(control)
+	}
+	
+	private onCornerControlOut(control: CornerControl): void {
+		control.setFillStyle(this.INACTIVE_TINT)
+	}
+	
+	private onCornerControlDragStart(control: CornerControl): void {
+	
+	}
+	
+	private onCornerControlDrag(control: CornerControl): void {
+	
+	}
+	
+	private onCornerControlDragEnd(control: CornerControl): void {
+	
+	}
+	
+	private updateCornerPositions(): void {
+		let top = this._top.y
+		let bottom = this._bottom.y
+		let right = this._right.x
+		let left = this._left.x
+		
+		this.topLeft.setPosition(left, top)
+		this.topRight.setPosition(right, top)
+		this.bottomRight.setPosition(right, bottom)
+		this.bottomLeft.setPosition(left, bottom)
+	}
+	
 	public setImage(image: NinePatch): void {
 		this.image = image
 		
@@ -148,6 +229,8 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		
 		this._bottom.displayWidth = right - left
 		this._bottom.y = bottom
+		
+		this.updateCornerPositions()
 	}
 	
 	private getImageBounds(): { top: number, bottom: number, left: number, right: number } | undefined {
