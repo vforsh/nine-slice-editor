@@ -4,7 +4,7 @@ import { PanelsManager } from "./panels/PanelsManager"
 import { BrowserSyncService } from "../../BrowserSyncService"
 import { Config } from "../../Config"
 import { cloneDeep, merge } from "lodash-es"
-import { blobToImage } from "../../robowhale/phaser3/utils/blob-to-json"
+import { blobToImage, blobToJson } from "../../robowhale/phaser3/utils/blob-to-json"
 import { DEFAULT_CONFIG, ProjectConfig, RGB, RGBA } from "./ProjectConfig"
 import { Grid } from "./Grid"
 import { GridPanelConfig } from "./panels/GridPanel"
@@ -220,23 +220,57 @@ export class NineSliceEditor extends BaseScene {
 			return
 		}
 		
-		this.handleDroppedAtlas(files)
+		if (files.length === 2) {
+			this.handleDroppedAtlas(files as [File, File])
+			return
+		}
+		
+		console.warn("Please drop image or image+json!", files)
+	}
+	
+	private isImageFile(file: File): boolean {
+		return file.type.includes("image")
+	}
+	
+	private isJsonFile(file: File): boolean {
+		return file.type === "application/json"
 	}
 	
 	private async handleDroppedTexture(file: File) {
-		if (file.type.includes("image") === false) {
+		if (!this.isImageFile(file)) {
 			console.warn(`Wrong file type - ${file.type}! Please drop an image!`)
 			return
 		}
 		
-		let key = Phaser.Math.RND.uuid()
+		let key = this.getAvailableTextureKey(file.name)
 		let image = await blobToImage(file)
 		this.textures.addImage(key, image)
-		this.updateImage(key)
+		this.updateImportConfig({ texture: "", atlas: "", frame: "" })
+		this.onImportComplete(key)
 	}
 	
-	private async handleDroppedAtlas(files: File[]) {
-		console.log(`handling dropped atlas...`, { files })
+	private handleDroppedAtlas(files: [File, File]) {
+		let file_1 = files[0]
+		let file_2 = files[1]
+		
+		if (this.isImageFile(file_1) && this.isJsonFile(file_2)) {
+			this.doHandleDroppedAtlas(file_1, file_2)
+		} else if (this.isJsonFile(file_1) && this.isImageFile(file_2)) {
+			this.doHandleDroppedAtlas(file_2, file_1)
+		} else {
+			console.warn("Invalid files combo! It should be image and json file!")
+		}
+	}
+	
+	private async doHandleDroppedAtlas(imageFile: File, atlasData: File) {
+		let key = this.getAvailableTextureKey(imageFile.name)
+		let image = await blobToImage(imageFile)
+		let atlas = await blobToJson(atlasData)
+		this.textures.addAtlas(key, image, atlas)
+		
+		let frame = await this.promptAtlasFrame(key)
+		this.updateImportConfig({ texture: "", atlas: "", frame: "" })
+		this.onImportComplete(key, frame)
 	}
 	
 	private addPanels() {
