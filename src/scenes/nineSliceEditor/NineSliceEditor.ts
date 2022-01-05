@@ -22,7 +22,17 @@ import slash from "slash"
 import { type ExecaReturnValue } from "execa"
 import { GetTexturePackerPathPanel } from "./modals/GetTexturePackerPathPanel"
 import { ModalPanelEvent } from "./modals/ModalPanel"
+import { AtlasFramePickerScreen } from "./atlasFramePicker/AtlasFramePickerScreen"
+import { NineSliceEditorDepth } from "./NineSliceEditorDepth"
+import { PhaserScreenEvent } from "../../robowhale/phaser3/gameObjects/container/screen/Screen"
+import { AtlasFramePickerPopupEvent } from "./atlasFramePicker/AtlasFramePickerPopup"
 import RenderTexture = Phaser.GameObjects.RenderTexture
+
+/**
+ * TODO
+ * - add corners to resize controls
+ * - display texts on resize & 9-slice controls
+ */
 
 export class NineSliceEditor extends BaseScene {
 	
@@ -36,16 +46,21 @@ export class NineSliceEditor extends BaseScene {
 	private image: NinePatch
 	private nineSliceControls: NineSliceControls
 	private resizeControls: ResizeControls
+	private atlasFramePicker: AtlasFramePickerScreen
 	
 	public init(): void {
 		super.init()
 		
 		this.isReady = false
+		this.atlasFramePicker = null
 		this.config = cloneDeep(DEFAULT_CONFIG)
 	}
 	
 	public preload(): void {
 		this.load.image(NineSliceEditor.DEFAULT_IMAGE, "assets/graphics/board.png")
+		this.load.image("black_rect", "assets/graphics/black_rect.png")
+		this.load.image("popup_back", "assets/graphics/popup_back.png")
+		this.load.image("atlas_back", "assets/graphics/atlas_back.png")
 	}
 	
 	public async create() {
@@ -54,35 +69,94 @@ export class NineSliceEditor extends BaseScene {
 		let frame = UrlParams.get("frame")
 		
 		if (!texture) {
+			this.updateImportConfig({ texture, atlas, frame })
 			this.doCreate()
 			return
 		}
 		
 		if (texture && !atlas && !frame) {
 			let { textureKey } = await this.loadSingleTexture(texture)
+			this.updateImportConfig({ texture, atlas, frame })
 			this.doCreate(textureKey)
 			return
 		}
 		
 		if (texture && atlas && !frame) {
-			// TODO log frames list to the console
-			frame = prompt("Please set the frame to load")
-			let { textureKey } = await this.loadAtlas(texture, atlas, frame)
+			let { textureKey } = await this.loadAtlas(texture, atlas)
+			let frame = await this.promptAtlasFrame(textureKey)
+			this.updateImportConfig({ texture, atlas, frame })
 			this.doCreate(textureKey, frame)
 			return
 		}
 		
 		if (texture && !atlas && frame) {
 			atlas = prompt("Please set path to the atlas JSON data")
-			let { textureKey } = await this.loadAtlas(texture, atlas, frame)
+			let { textureKey } = await this.loadAtlas(texture, atlas)
+			this.updateImportConfig({ texture, atlas, frame })
 			this.doCreate(textureKey, frame)
 			return
 		}
 		
 		if (texture && atlas && frame) {
-			let { textureKey } = await this.loadAtlas(texture, atlas, frame)
+			let { textureKey } = await this.loadAtlas(texture, atlas)
+			this.updateImportConfig({ texture, atlas, frame })
 			this.doCreate(textureKey, frame)
 		}
+	}
+	
+	private promptAtlasFrame(atlasKey: string): Promise<string> {
+		return new Promise((resolve, reject) => {
+			let texture = this.textures.get(atlasKey)
+			if (!texture) {
+				return reject(`Atlas "${atlasKey}" doesn't exist!`)
+			}
+			
+			this.atlasFramePicker = new AtlasFramePickerScreen(this, texture)
+			this.atlasFramePicker.setDepth(NineSliceEditorDepth.ATLAS_FRAME_PICKER)
+			
+			this.atlasFramePicker.on(PhaserScreenEvent.SHOW, this.onAtlasFramePickerShow, this)
+			
+			this.atlasFramePicker.once(PhaserScreenEvent.HIDE_COMPLETE, () => {
+				this.onAtlasFramePickerHideComplete()
+				resolve(null)
+			})
+			
+			this.atlasFramePicker.popup.once(AtlasFramePickerPopupEvent.FRAME_PICK, (frame: Phaser.Textures.Frame) => {
+				this.onAtlasFramePickerHideComplete()
+				resolve(frame.name)
+			})
+			
+			this.atlasFramePicker.resize()
+			this.atlasFramePicker.show()
+			this.add.existing(this.atlasFramePicker)
+		})
+	}
+	
+	private onAtlasFramePickerShow(): void {
+		this.cameras.main.zoom = 1
+	}
+	
+	private onAtlasFramePickerHideComplete(): void {
+		this.atlasFramePicker.destroy()
+		this.atlasFramePicker = null
+	}
+	
+	private updateImportConfig(importConfig: ProjectConfig["import"]): void {
+		merge(this.config.import, importConfig)
+		
+		if (this.config.import.texture === null) {
+			this.config.import.texture = ""
+		}
+		
+		if (this.config.import.atlas === null) {
+			this.config.import.atlas = ""
+		}
+		
+		if (this.config.import.frame === null) {
+			this.config.import.frame = ""
+		}
+		
+		this.panels?.importPanel.refresh()
 	}
 	
 	public doCreate(textureKey?: string, frame?: string) {
@@ -90,15 +164,9 @@ export class NineSliceEditor extends BaseScene {
 		this.addPanels()
 		this.addBackground()
 		this.addGrid()
-		this.addImage(textureKey ?? NineSliceEditor.DEFAULT_IMAGE, frame)
+		this.addNineSliceImage(textureKey ?? NineSliceEditor.DEFAULT_IMAGE, frame)
 		this.addNineSliceControls()
 		this.addResizeControls()
-		
-		this.nineSliceControls.revive()
-		this.nineSliceControls.setImage(this.image)
-		
-		this.resizeControls.revive()
-		this.resizeControls.setImage(this.image)
 		
 		this.updateBackgroundColor(this.rgbaToNumber(this.config.grid.bgColor))
 		
@@ -176,7 +244,7 @@ export class NineSliceEditor extends BaseScene {
 		this.panels.gridPanel.on("change", this.onGridChange, this)
 		this.panels.nineSlicePanel.on("change", this.onNineSliceSettingsChange.bind(this))
 		this.panels.resizePanel.on("change", this.onResizeSettingsChange.bind(this))
-		this.panels.importPanel.loadButton.on("click", this.onLoadImageButtonClick.bind(this))
+		this.panels.importPanel.importButton.on("click", this.onImportButtonClick.bind(this))
 		this.panels.exportPanel.exportButton.on("click", this.onExportButtonClick.bind(this))
 		this.panels.nineSliceDataPanel.copyButton.on("click", this.onCopyPatchesConfigButtonClick.bind(this))
 	}
@@ -188,7 +256,11 @@ export class NineSliceEditor extends BaseScene {
 			this.grid.kill()
 		}
 		
-		this.redrawGrid()
+		this.grid?.redraw({
+			width: Config.GAME_WIDTH,
+			height: Config.GAME_HEIGHT,
+			...this.config.grid,
+		})
 	}
 	
 	private onNineSliceSettingsChange(config: NineSliceControlsPanelConfig, prop: keyof NineSliceControlsPanelConfig): void {
@@ -246,17 +318,18 @@ export class NineSliceEditor extends BaseScene {
 		
 		let rt = this.createRenderTextureFromNinepatch(this.image)
 		let blob = await renderTextureToBlob(rt)
+		let filename = this.getExportFileName(this.image.originFrame)
 		
 		rt.destroy()
 		
-		let texturePath = this.config.export.texture
-		if (!texturePath) {
-			await downloadBlob(blob, "image.png")
+		let triggerBrowserDownload = !this.config.export.texture
+		if (triggerBrowserDownload) {
+			await downloadBlob(blob, filename)
 			this.panels.exportPanel.exportButton.disabled = false
 			return
 		}
 		
-		BrowserSyncService.writeFile(texturePath, blob)
+		BrowserSyncService.writeFile(this.config.export.texture, blob)
 			.then(response => this.onExportComplete(response))
 			.catch(error => console.log(`Can't save texture!`, error))
 			.finally(() => {
@@ -271,13 +344,24 @@ export class NineSliceEditor extends BaseScene {
 		return rt
 	}
 	
+	private getExportFileName(originFrame: Phaser.Textures.Frame, extension = ".png"): string {
+		let frameName = originFrame.name.split("/").pop()
+		if (frameName === "__BASE") {
+			frameName = originFrame.texture.key
+		}
+		
+		if (!frameName.includes(extension)) {
+			frameName += extension
+		}
+		
+		return frameName
+	}
+	
 	private async onExportComplete(response: Response) {
 		let json = await response.json()
 		console.log("NineSliceEditor.onExportComplete", json)
 		
 		console.group("Texture was exported! ✔")
-		// console.log(`Texture: ${texture}`)
-		// console.log(`Project: ${project}`)
 		
 		let texturePacker = this.config.export.texturePacker
 		if (texturePacker) {
@@ -357,7 +441,7 @@ export class NineSliceEditor extends BaseScene {
 			.catch(error => console.log(`Can't copy patches config to clipboard!`, error))
 	}
 	
-	private async onLoadImageButtonClick() {
+	private async onImportButtonClick() {
 		let { texture, atlas, frame } = this.config.import
 		
 		if (!texture) {
@@ -365,19 +449,41 @@ export class NineSliceEditor extends BaseScene {
 			return
 		}
 		
-		if (frame && !atlas) {
-			console.warn("Please set path to the atlas file!")
+		if (texture && !atlas && !frame) {
+			let { textureKey } = await this.loadSingleTexture(texture)
+			this.updateImportConfig({ texture, atlas, frame })
+			this.onImportComplete(textureKey)
 			return
 		}
 		
-		if (texture && !frame) {
-			this.loadSingleTexture(texture)
+		if (texture && atlas && !frame) {
+			let { textureKey } = await this.loadAtlas(texture, atlas)
+			let frame = await this.promptAtlasFrame(textureKey)
+			this.updateImportConfig({ texture, atlas, frame })
+			this.onImportComplete(textureKey, frame)
 			return
 		}
 		
-		if (texture && frame) {
-			this.loadAtlas(texture, atlas, frame)
+		if (texture && !atlas && frame) {
+			atlas = prompt("Please set path to the atlas JSON data")
+			let { textureKey } = await this.loadAtlas(texture, atlas)
+			this.updateImportConfig({ texture, atlas, frame })
+			this.onImportComplete(textureKey, frame)
+			return
 		}
+		
+		if (texture && atlas && frame) {
+			let { textureKey } = await this.loadAtlas(texture, atlas)
+			this.updateImportConfig({ texture, atlas, frame })
+			this.onImportComplete(textureKey, frame)
+		}
+	}
+	
+	private onImportComplete(textureKey: string, frame?: string): void {
+		this.updateImage(textureKey, frame)
+		this.updatePatchesMonitor(this.image.config)
+		this.nineSliceControls.setImage(this.image)
+		this.resizeControls.setImage(this.image)
 	}
 	
 	private async loadTexture(path: string): Promise<HTMLImageElement> {
@@ -391,18 +497,17 @@ export class NineSliceEditor extends BaseScene {
 		return response.json()
 	}
 	
-	private async loadSingleTexture(path: string): Promise<{ textureKey: string }> {
-		let image = await this.loadTexture(path)
-		let key = Phaser.Math.RND.uuid()
+	private async loadSingleTexture(texturePath: string): Promise<{ textureKey: string }> {
+		let key = this.getAvailableTextureKey(texturePath)
+		let image = await this.loadTexture(texturePath)
+		
 		this.textures.addImage(key, image)
 		
 		return { textureKey: key }
-		
-		// this.updateImage(key)
 	}
 	
-	private async loadAtlas(texturePath: string, atlasPath: string, frame: string): Promise<{ textureKey: string, frame: string }> {
-		let key = Phaser.Math.RND.uuid()
+	private async loadAtlas(texturePath: string, atlasPath: string): Promise<{ textureKey: string }> {
+		let key = this.getAvailableTextureKey(texturePath)
 		let [texture, atlas] = await Promise.all([
 			this.loadTexture(texturePath),
 			this.loadAtlasData(atlasPath),
@@ -410,12 +515,35 @@ export class NineSliceEditor extends BaseScene {
 		
 		this.textures.addAtlas(key, texture, atlas as object)
 		
-		return {
-			textureKey: key,
-			frame,
+		return { textureKey: key }
+	}
+	
+	private getAvailableTextureKey(texturePath: string): string {
+		let base = this.getTextureKey(texturePath)
+		
+		if (!this.textures.exists(base)) {
+			return base
 		}
 		
-		// this.updateImage(key, frame)
+		let n = 1
+		let key: string
+		do {
+			key = `${base}_${n++}`
+		} while (this.textures.exists(key))
+		
+		return key
+	}
+	
+	private getTextureKey(texturePath: string): string {
+		let path = slash(texturePath)
+		let key = path.split("/").pop()
+		
+		let dotIndex = key.indexOf(".")
+		if (dotIndex > -1) {
+			return key.slice(0, dotIndex)
+		}
+		
+		return key
 	}
 	
 	private updateImage(key: string, frame?: string): void {
@@ -431,6 +559,7 @@ export class NineSliceEditor extends BaseScene {
 		}
 		
 		this.image = this.add.ninePatch(0, 0, width, height, key, frame, patches)
+		this.image.setDepth(NineSliceEditorDepth.NINE_SLICE_IMAGE)
 		this.pin(this.image, 0.5, 0.5)
 		this.pinner.align(this.image, Config.GAME_WIDTH, Config.GAME_HEIGHT, Config.ASSETS_SCALE)
 		
@@ -468,15 +597,16 @@ export class NineSliceEditor extends BaseScene {
 		this.pin(this.grid, 0.5, 0.5)
 	}
 	
-	private addImage(textureKey: string, frame?: string) {
+	private addNineSliceImage(textureKey: string, frame?: string) {
 		this.updateImage(textureKey, frame)
 	}
 	
 	private addNineSliceControls() {
 		this.nineSliceControls = new NineSliceControls(this, this.config.nineSliceControls)
-		this.nineSliceControls.kill()
-		this.nineSliceControls.setDepth(200)
+		this.nineSliceControls.setDepth(NineSliceEditorDepth.NINE_SLICE_CONTROLS)
 		this.nineSliceControls.on(NineSliceControlsEvent.PATCHES_CHANGE, this.onPatchesChange, this)
+		this.nineSliceControls.revive()
+		this.nineSliceControls.setImage(this.image)
 		this.add.existing(this.nineSliceControls)
 		this.pin(this.nineSliceControls, 0.5, 0.5)
 	}
@@ -501,9 +631,10 @@ export class NineSliceEditor extends BaseScene {
 	
 	private addResizeControls() {
 		this.resizeControls = new ResizeControls(this, this.config.resizeControls)
-		this.resizeControls.kill()
-		this.resizeControls.setDepth(201)
+		this.resizeControls.setDepth(NineSliceEditorDepth.RESIZE_CONTROLS)
 		this.resizeControls.on(ResizeControlsEvent.RESIZE, this.onSizeChange, this)
+		this.resizeControls.revive()
+		this.resizeControls.setImage(this.image)
 		this.add.existing(this.resizeControls)
 		this.pin(this.resizeControls, 0.5, 0.5)
 	}
@@ -514,7 +645,25 @@ export class NineSliceEditor extends BaseScene {
 	}
 	
 	private addKeyboardCallbacks() {
+		this.onKeyDown("G", this.toggleGrid, this)
+		this.onKeyDown("Q", this.toggleNineSliceControls, this)
+		this.onKeyDown("W", this.toggleResizeControls, this)
+		this.onKeyDown("E", this.onExportButtonClick, this)
+	}
 	
+	private toggleGrid(): void {
+		this.config.grid.display = !this.config.grid.display
+		this.panels.gridPanel.refresh()
+	}
+	
+	private toggleNineSliceControls(): void {
+		this.config.nineSliceControls.display = !this.config.nineSliceControls.display
+		this.panels.nineSlicePanel.refresh()
+	}
+	
+	private toggleResizeControls(): void {
+		this.config.resizeControls.display = !this.config.resizeControls.display
+		this.panels.resizePanel.refresh()
 	}
 	
 	private addPointerCallbacks() {
@@ -524,23 +673,15 @@ export class NineSliceEditor extends BaseScene {
 	}
 	
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
-	
+		if (pointer.button === 1) { // wheel button (at least for my mouse)
+			this.cameras.main.zoom = 1
+		}
 	}
 	
 	private onPointerWheel(pointer: Phaser.Input.Pointer, objects, dx, dy: number): void {
-		/*if (!this.image) {
+		if (this.atlasFramePicker) {
 			return
 		}
-		
-		let { width, height } = this.image
-		
-		if (pointer.event.shiftKey) {
-			width += 10 * Phaser.Math.Sign(dy)
-		} else {
-			height += 10 * Phaser.Math.Sign(dy)
-		}
-		
-		this.image.resize(width, height)*/
 		
 		let camera = this.cameras.main
 		let delta = Phaser.Math.Sign(dy) * -0.1
@@ -554,19 +695,13 @@ export class NineSliceEditor extends BaseScene {
 	public resize(): void {
 		super.resize()
 		
-		if (!this.isReady) {
-			return
-		}
-		
-		this.redrawGrid()
-	}
-	
-	private redrawGrid() {
-		this.grid.redraw({
+		this.grid?.redraw({
 			width: Config.GAME_WIDTH,
 			height: Config.GAME_HEIGHT,
 			...this.config.grid,
 		})
+		
+		this.atlasFramePicker?.resize()
 	}
 	
 	public onShutdown() {
