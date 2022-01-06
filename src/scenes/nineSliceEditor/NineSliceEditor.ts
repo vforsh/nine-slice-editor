@@ -678,6 +678,7 @@ export class NineSliceEditor extends BaseScene {
 		this.onKeyDown("I", this.triggerFileUpload, this)
 		this.onKeyDown("E", this.onExportButtonClick, this)
 		this.onKeyDown("C", this.onCopyPatchesConfigButtonClick, this)
+		this.onKeyDown("R", this.resetNineSliceImage, this)
 	}
 	
 	private toggleGrid(): void {
@@ -699,6 +700,20 @@ export class NineSliceEditor extends BaseScene {
 		this.uploadInput.click()
 	}
 	
+	private resetNineSliceImage(): void {
+		let frame = this.image.originFrame
+		let textureKey = frame.texture.key
+		let frameName = frame.name
+		
+		this.destroyNineSliceImage()
+		this.addNineSliceImage({ textureKey, frameName })
+		this.updatePatchesMonitor(this.image.config)
+		this.nineSliceControls.setImage(this.image)
+		this.resizeControls.setImage(this.image)
+		
+		this.resetCameraZoom()
+	}
+	
 	private addPointerCallbacks() {
 		this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this)
 		this.input.on(Phaser.Input.Events.POINTER_WHEEL, this.onPointerWheel, this)
@@ -707,8 +722,12 @@ export class NineSliceEditor extends BaseScene {
 	
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
 		if (pointer.button === 1) { // wheel button (at least for my mouse)
-			this.cameras.main.zoom = 1
+			this.resetCameraZoom()
 		}
+	}
+	
+	private resetCameraZoom() {
+		this.cameras.main.zoom = 1
 	}
 	
 	private onPointerWheel(pointer: Phaser.Input.Pointer, objects, dx, dy: number): void {
@@ -717,7 +736,8 @@ export class NineSliceEditor extends BaseScene {
 		}
 		
 		let camera = this.cameras.main
-		let delta = Phaser.Math.Sign(dy) * -0.1
+		let k = pointer.event.shiftKey ? 2 : 1
+		let delta = Phaser.Math.Sign(dy) * -0.1 * k
 		camera.zoom = Math.max(0.1, camera.zoom + delta)
 	}
 	
