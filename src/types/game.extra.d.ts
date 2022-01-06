@@ -12,10 +12,8 @@ declare module Phaser {
 		analytics: import("../GameAnalyticsWrapper").GameAnalyticsWrapper
 		toasts: import("../robowhale/phaser3/gameObjects/toast/ToastsManager").ToastsManager
 		audio: import("../audio/HowlerWrapper").HowlerWrapper
-		ads: import("../AdsWrapper").AdsWrapper
 		loadingScreen: import("../LoadingOverlay").LoadingOverlay
 		scaler: import("../scale/GameScaler").GameScaler
-		fpsTracker: import("../FpsTracker").FpsTracker
 		stash: import("../stash/GameStash").GameStash
 		webp: boolean
 		avif: boolean

@@ -1,5 +1,3 @@
-import { NinePatch } from "@koreez/phaser3-ninepatch"
-
 type Vector2Like = Phaser.Types.Math.Vector2Like
 
 export enum ResizeControlsEvent {

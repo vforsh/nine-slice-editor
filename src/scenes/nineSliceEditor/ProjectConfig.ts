@@ -1,5 +1,3 @@
-import { IPatchesConfig } from "@koreez/phaser3-ninepatch"
-
 export type RGB = {
 	r: number
 	g: number

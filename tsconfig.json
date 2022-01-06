@@ -26,7 +26,6 @@
 			"node_modules/gameanalytics/dist/GameAnalytics.d.ts",
 			"node_modules/css-element-queries/src/ResizeSensor.d.ts",
 			"node_modules/tweakpane/dist/types/index.d.ts",
-			"node_modules/@koreez/phaser3-ninepatch/lib/index.d.ts",
 		]
 	},
 	"exclude": [

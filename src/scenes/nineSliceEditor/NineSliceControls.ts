@@ -1,5 +1,3 @@
-import { IPatchesConfig, NinePatch } from "@koreez/phaser3-ninepatch"
-
 type Vector2Like = Phaser.Types.Math.Vector2Like
 type Control = Phaser.GameObjects.Image
 
