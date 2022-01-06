@@ -160,6 +160,7 @@ export class NineSliceEditor extends BaseScene {
 	}
 	
 	public doCreate(textureKey?: string, frame?: string) {
+		this.initUploadInput()
 		this.initCanvasDrop()
 		this.addPanels()
 		this.addBackground()
@@ -176,6 +177,20 @@ export class NineSliceEditor extends BaseScene {
 		
 		this.isReady = true
 		this.resize()
+	}
+	
+	private initUploadInput(): void {
+		if (this.uploadInput) {
+			return
+		}
+		
+		this.uploadInput = document.getElementById("upload") as HTMLInputElement
+		this.uploadInput.addEventListener("change", () => {
+			let filesArr = Array.from(this.uploadInput.files)
+			if (filesArr.length >= 1 && filesArr.length <= 2) {
+				this.handleFiles(filesArr)
+			}
+		})
 	}
 	
 	private initCanvasDrop() {
@@ -200,7 +215,7 @@ export class NineSliceEditor extends BaseScene {
 			evt.preventDefault()
 			
 			let files = this.getFiles(evt.dataTransfer)
-			this.handleDroppedFiles(files)
+			this.handleFiles(files)
 		}
 	}
 	
@@ -214,7 +229,7 @@ export class NineSliceEditor extends BaseScene {
 			.map(item => item.getAsFile())
 	}
 	
-	private handleDroppedFiles(files: File[]): void {
+	private handleFiles(files: File[]): void {
 		if (files.length === 1) {
 			this.handleDroppedTexture(files[0])
 			return
@@ -479,7 +494,7 @@ export class NineSliceEditor extends BaseScene {
 		let { texture, atlas, frame } = this.config.import
 		
 		if (!texture) {
-			console.warn("Please set path to the texture file!")
+			this.triggerFileUpload()
 			return
 		}
 		
@@ -682,6 +697,7 @@ export class NineSliceEditor extends BaseScene {
 		this.onKeyDown("G", this.toggleGrid, this)
 		this.onKeyDown("Q", this.toggleNineSliceControls, this)
 		this.onKeyDown("W", this.toggleResizeControls, this)
+		this.onKeyDown("I", this.triggerFileUpload, this)
 		this.onKeyDown("E", this.onExportButtonClick, this)
 	}
 	
@@ -698,6 +714,10 @@ export class NineSliceEditor extends BaseScene {
 	private toggleResizeControls(): void {
 		this.config.resizeControls.display = !this.config.resizeControls.display
 		this.panels.resizePanel.refresh()
+	}
+	
+	private triggerFileUpload(): void {
+		this.uploadInput.click()
 	}
 	
 	private addPointerCallbacks() {
