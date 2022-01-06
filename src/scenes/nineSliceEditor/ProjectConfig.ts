@@ -9,8 +9,10 @@ export type RGBA = RGB & {
 	a: number
 }
 
+export type SizeConfig = { width: number, height: number }
+
 export interface ProjectConfig {
-	grid: {
+	axes: {
 		bgColor: RGB
 		step: number
 		subSteps: number
@@ -39,11 +41,14 @@ export interface ProjectConfig {
 		texture: string
 		texturePacker: string
 	},
-	nineSlice: Required<IPatchesConfig>,
+	image: {
+		size: SizeConfig
+		patches: Required<IPatchesConfig>
+	},
 }
 
 export const DEFAULT_CONFIG: ProjectConfig = Object.freeze({
-	grid: {
+	axes: {
 		bgColor: { r: 104, g: 104, b: 104 },
 		step: 100,
 		subSteps: 5,
@@ -72,10 +77,16 @@ export const DEFAULT_CONFIG: ProjectConfig = Object.freeze({
 		texture: "",
 		texturePacker: "",
 	},
-	nineSlice: {
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 0,
+	image: {
+		size: {
+			width: 0,
+			height: 0,
+		},
+		patches: {
+			top: 0,
+			bottom: 0,
+			left: 0,
+			right: 0,
+		},
 	},
 })

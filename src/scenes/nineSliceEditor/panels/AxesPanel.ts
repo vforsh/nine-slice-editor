@@ -1,14 +1,14 @@
 import { EditorPanel } from "./EditorPanel"
 import { ProjectConfig } from "../ProjectConfig"
 
-export type GridPanelConfig = ProjectConfig["grid"]
+export type AxesPanelConfig = ProjectConfig["axes"]
 
-export class GridPanel extends EditorPanel {
+export class AxesPanel extends EditorPanel {
 	
-	private config: GridPanelConfig
+	private config: AxesPanelConfig
 	
-	constructor(scene: Phaser.Scene, container: HTMLElement, config: GridPanelConfig) {
-		super(scene, container, "Grid")
+	constructor(scene: Phaser.Scene, container: HTMLElement, config: AxesPanelConfig) {
+		super(scene, container, "Axes")
 		
 		this.config = config
 		

@@ -5,9 +5,9 @@ import { BrowserSyncService } from "../../BrowserSyncService"
 import { Config } from "../../Config"
 import { cloneDeep, mergeWith } from "lodash-es"
 import { blobToImage, blobToJson } from "../../robowhale/phaser3/utils/blob-to-json"
-import { DEFAULT_CONFIG, ProjectConfig } from "./ProjectConfig"
-import { Grid } from "./Grid"
-import { GridPanelConfig } from "./panels/GridPanel"
+import { DEFAULT_CONFIG, ProjectConfig, SizeConfig } from "./ProjectConfig"
+import { Axes } from "./Axes"
+import { AxesPanelConfig } from "./panels/AxesPanel"
 import { JsonValue } from "type-fest"
 import { IPatchesConfig, NinePatch } from "@koreez/phaser3-ninepatch"
 import { NineSliceControls, NineSliceControlsEvent } from "./NineSliceControls"
@@ -38,7 +38,7 @@ export class NineSliceEditor extends BaseScene {
 	private uploadInput: HTMLInputElement
 	private panels: PanelsManager
 	private background: Phaser.GameObjects.Image
-	private grid: Grid
+	private axes: Axes
 	private image: NinePatch
 	private nineSliceControls: NineSliceControls
 	private resizeControls: ResizeControls
@@ -152,8 +152,9 @@ export class NineSliceEditor extends BaseScene {
 		this.addNineSliceControls()
 		this.addResizeControls()
 		
-		this.updateBackgroundColor(rgbaToNumber(this.config.grid.bgColor))
+		this.updateBackgroundColor(rgbaToNumber(this.config.axes.bgColor))
 		
+		this.updateSizeMonitor(this.getImageSizeConfig())
 		this.updatePatchesMonitor(this.image.config)
 		
 		this.addKeyboardCallbacks()
@@ -275,25 +276,25 @@ export class NineSliceEditor extends BaseScene {
 	
 	private addPanels() {
 		this.panels = new PanelsManager(this)
-		this.panels.gridPanel.on("change", this.onGridSettingsChange, this)
+		this.panels.axesPanel.on("change", this.onGridSettingsChange, this)
 		this.panels.nineSlicePanel.on("change", this.onNineSliceSettingsChange.bind(this))
 		this.panels.resizePanel.on("change", this.onResizeSettingsChange.bind(this))
 		this.panels.importPanel.importButton.on("click", this.onImportButtonClick.bind(this))
 		this.panels.exportPanel.exportButton.on("click", this.onExportButtonClick.bind(this))
-		this.panels.nineSliceDataPanel.copyButton.on("click", this.onCopyPatchesConfigButtonClick.bind(this))
+		this.panels.imagePanel.copyButton.on("click", this.onCopyPatchesConfigButtonClick.bind(this))
 	}
 	
-	private onGridSettingsChange<K extends keyof GridPanelConfig>(config: GridPanelConfig, prop: K, value: GridPanelConfig[K]): void {
+	private onGridSettingsChange<K extends keyof AxesPanelConfig>(config: AxesPanelConfig, prop: K, value: AxesPanelConfig[K]): void {
 		if (config.display) {
-			this.grid.revive()
+			this.axes.revive()
 		} else {
-			this.grid.kill()
+			this.axes.kill()
 		}
 		
-		this.grid?.redraw({
+		this.axes?.redraw({
 			width: Config.GAME_WIDTH,
 			height: Config.GAME_HEIGHT,
-			...this.config.grid,
+			...this.config.axes,
 		})
 	}
 	
@@ -468,7 +469,7 @@ export class NineSliceEditor extends BaseScene {
 	}
 	
 	private onCopyPatchesConfigButtonClick(): void {
-		let value = this.panels.nineSliceDataPanel.getMonitorValue()
+		let value = this.panels.imagePanel.getPatchesMonitorValue()
 		
 		copyToClipboard(value)
 			.then(() => console.log(`Patches config was copied to clipboard ✔`))
@@ -516,6 +517,7 @@ export class NineSliceEditor extends BaseScene {
 	private onImportComplete(textureKey: string, frameName?: string): void {
 		this.destroyNineSliceImage()
 		this.addNineSliceImage({ textureKey, frameName })
+		this.updateSizeMonitor(this.getImageSizeConfig())
 		this.updatePatchesMonitor(this.image.config)
 		this.nineSliceControls.setImage(this.image)
 		this.resizeControls.setImage(this.image)
@@ -588,10 +590,10 @@ export class NineSliceEditor extends BaseScene {
 	}
 	
 	private addGrid() {
-		this.grid = new Grid(this)
-		this.grid.setDepth(NineSliceEditorDepth.GRID)
-		this.add.existing(this.grid)
-		this.pin(this.grid, 0.5, 0.5)
+		this.axes = new Axes(this)
+		this.axes.setDepth(NineSliceEditorDepth.GRID)
+		this.add.existing(this.axes)
+		this.pin(this.axes, 0.5, 0.5)
 	}
 	
 	private addNineSliceImage(options: { textureKey: string, frameName?: string, width?: number, height?: number, patches?: IPatchesConfig }): void {
@@ -639,6 +641,7 @@ export class NineSliceEditor extends BaseScene {
 		
 		this.destroyNineSliceImage()
 		this.addNineSliceImage({ textureKey, frameName, width, height, patches })
+		this.updateSizeMonitor(this.getImageSizeConfig())
 		this.updatePatchesMonitor(this.image.config)
 		
 		this.nineSliceControls.setImage(this.image)
@@ -658,6 +661,7 @@ export class NineSliceEditor extends BaseScene {
 	private onSizeChange(size: { width: number, height: number }): void {
 		this.image.resize(size.width, size.height)
 		this.nineSliceControls.setImage(this.image)
+		this.updateSizeMonitor(this.getImageSizeConfig())
 	}
 	
 	private updateBackgroundColor(color: number): void {
@@ -667,26 +671,39 @@ export class NineSliceEditor extends BaseScene {
 		this.background?.setTintFill(color)
 	}
 	
+	private updateSizeMonitor(config: SizeConfig): void {
+		mergeWith(this.config.image.size, config, (_, srcValue) => Phaser.Math.RoundTo(srcValue, -2))
+		this.panels.imagePanel.updateSizeMonitor()
+	}
+	
 	private updatePatchesMonitor(config: IPatchesConfig): void {
-		mergeWith(this.config.nineSlice, config, (_, srcValue) => Phaser.Math.RoundTo(srcValue, -2))
-		this.panels.nineSliceDataPanel.updateMonitor()
+		mergeWith(this.config.image.patches, config, (_, srcValue) => Phaser.Math.RoundTo(srcValue, -2))
+		this.panels.imagePanel.updatePatchesMonitor()
+	}
+	
+	private getImageSizeConfig(): SizeConfig {
+		return {
+			width: this.image.width,
+			height: this.image.height,
+		}
 	}
 	
 	private addKeyboardCallbacks() {
-		this.onKeyDown("G", this.toggleGrid, this)
+		this.onKeyDown("A", this.toggleAxes, this)
 		this.onKeyDown("Q", this.toggleNineSliceControls, this)
 		this.onKeyDown("W", this.toggleResizeControls, this)
 		this.onKeyDown("I", this.triggerFileUpload, this)
+		this.onKeyDown("U", this.triggerFileUpload, this)
 		this.onKeyDown("E", this.onExportButtonClick, this)
 		this.onKeyDown("C", this.onCopyPatchesConfigButtonClick, this)
 		this.onKeyDown("R", this.resetNineSliceImage, this)
-		this.onKeyDown("OPEN_BRACKET", () => this.grid.setDepth(NineSliceEditorDepth.GRID))
-		this.onKeyDown("CLOSED_BRACKET", () => this.grid.setDepth(NineSliceEditorDepth.GRID_ON_TOP))
+		this.onKeyDown("OPEN_BRACKET", () => this.axes.setDepth(NineSliceEditorDepth.GRID))
+		this.onKeyDown("CLOSED_BRACKET", () => this.axes.setDepth(NineSliceEditorDepth.GRID_ON_TOP))
 	}
 	
-	private toggleGrid(): void {
-		this.config.grid.display = !this.config.grid.display
-		this.panels.gridPanel.refresh()
+	private toggleAxes(): void {
+		this.config.axes.display = !this.config.axes.display
+		this.panels.axesPanel.refresh()
 	}
 	
 	private toggleNineSliceControls(): void {
@@ -710,6 +727,7 @@ export class NineSliceEditor extends BaseScene {
 		
 		this.destroyNineSliceImage()
 		this.addNineSliceImage({ textureKey, frameName })
+		this.updateSizeMonitor(this.getImageSizeConfig())
 		this.updatePatchesMonitor(this.image.config)
 		this.nineSliceControls.setImage(this.image)
 		this.resizeControls.setImage(this.image)
@@ -751,10 +769,10 @@ export class NineSliceEditor extends BaseScene {
 	public resize(): void {
 		super.resize()
 		
-		this.grid?.redraw({
+		this.axes?.redraw({
 			width: Config.GAME_WIDTH,
 			height: Config.GAME_HEIGHT,
-			...this.config.grid,
+			...this.config.axes,
 		})
 		
 		this.atlasFramePicker?.resize()

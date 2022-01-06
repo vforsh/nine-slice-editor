@@ -43,10 +43,10 @@
 		build_time: "{{ BUILD_TIME }}",
 		build_version: 1,
 		publisher: "robowhale",
-		game_title: "Bitmap Font Editor",
-		game_slug: "bitmap-font-editor",
+		game_title: "9-Slice Editor",
+		game_slug: "nine-slice-editor",
 		default_language: "en",
-		feedback_enabled: true,
+		feedback_enabled: false,
 		feedback_url: "", // TODO update feedback google sheet
 		analytics_enabled: false
 	}

@@ -1,9 +1,9 @@
 import { NineSliceEditor } from "../NineSliceEditor"
-import { GridPanel } from "./GridPanel"
+import { AxesPanel } from "./AxesPanel"
 import { ImportPanel } from "./ImportPanel"
 import { ResizePanel } from "./ResizePanel"
 import { NineSliceControlsPanel } from "./NineSliceControlsPanel"
-import { NineSlicePatchesPanel } from "./NineSlicePatchesPanel"
+import { ImagePanel } from "./ImagePanel"
 import { ExportPanel } from "./ExportPanel"
 
 export class PanelsManager extends Phaser.Events.EventEmitter {
@@ -12,13 +12,12 @@ export class PanelsManager extends Phaser.Events.EventEmitter {
 	public leftPanels: HTMLElement
 	public rightPanels: HTMLElement
 	
-	public gridPanel: GridPanel
+	public axesPanel: AxesPanel
 	public nineSlicePanel: NineSliceControlsPanel
 	public resizePanel: ResizePanel
-	
 	public importPanel: ImportPanel
 	public exportPanel: ExportPanel
-	public nineSliceDataPanel: NineSlicePatchesPanel
+	public imagePanel: ImagePanel
 	
 	constructor(scene: NineSliceEditor) {
 		super()
@@ -29,15 +28,12 @@ export class PanelsManager extends Phaser.Events.EventEmitter {
 		
 		let config = this.scene.config
 		
-		// left panel
-		this.gridPanel = new GridPanel(this.scene, this.leftPanels, config.grid)
+		this.axesPanel = new AxesPanel(this.scene, this.leftPanels, config.axes)
 		this.nineSlicePanel = new NineSliceControlsPanel(this.scene, this.leftPanels, config.nineSliceControls)
 		this.resizePanel = new ResizePanel(this.scene, this.leftPanels, config.resizeControls)
-		
-		// right panels
-		this.importPanel = new ImportPanel(this.scene, this.rightPanels, config.import)
-		this.exportPanel = new ExportPanel(this.scene, this.rightPanels, config.export)
-		this.nineSliceDataPanel = new NineSlicePatchesPanel(this.scene, this.rightPanels, config.nineSlice)
+		this.importPanel = new ImportPanel(this.scene, this.leftPanels, config.import)
+		this.exportPanel = new ExportPanel(this.scene, this.leftPanels, config.export)
+		this.imagePanel = new ImagePanel(this.scene, this.leftPanels, config.image)
 		
 		this.addKeyboardCallbacks()
 	}
@@ -114,10 +110,11 @@ export class PanelsManager extends Phaser.Events.EventEmitter {
 	public destroy(): void {
 		super.destroy()
 		
-		this.gridPanel.destroy()
+		this.axesPanel.destroy()
 		this.nineSlicePanel.destroy()
 		this.resizePanel.destroy()
-		
 		this.importPanel.destroy()
+		this.exportPanel.destroy()
+		this.imagePanel.destroy()
 	}
 }

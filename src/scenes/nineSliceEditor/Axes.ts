@@ -2,7 +2,7 @@ import { RGB } from "./ProjectConfig"
 import { rgbaToNumber } from "./rgba-to-number"
 import { times } from "lodash-es"
 
-export interface GridOptions {
+export interface AxesOptions {
 	width: number
 	height: number
 	step: number
@@ -12,7 +12,7 @@ export interface GridOptions {
 	alpha: number
 }
 
-export class Grid extends Phaser.GameObjects.Container {
+export class Axes extends Phaser.GameObjects.Container {
 	
 	private graphics: Phaser.GameObjects.Graphics
 	private texts: Phaser.GameObjects.Text[] // TODO replace with bitmap texts
@@ -24,7 +24,7 @@ export class Grid extends Phaser.GameObjects.Container {
 	constructor(scene: Phaser.Scene) {
 		super(scene)
 		
-		this.name = "grid"
+		this.name = "axes"
 		
 		this.texts = times(100, () => this.createText())
 		
@@ -51,7 +51,7 @@ export class Grid extends Phaser.GameObjects.Container {
 		return text
 	}
 	
-	public redraw(options: GridOptions): void {
+	public redraw(options: AxesOptions): void {
 		this.alpha = options.alpha
 		
 		this.graphics.clear()
@@ -63,7 +63,7 @@ export class Grid extends Phaser.GameObjects.Container {
 		this.drawYAxis(options)
 	}
 	
-	private drawXAxis(options: GridOptions) {
+	private drawXAxis(options: AxesOptions) {
 		let left = -this.axisLength / 2
 		let right = this.axisLength / 2
 		this.graphics.lineBetween(left, 0, right, 0)
@@ -89,7 +89,7 @@ export class Grid extends Phaser.GameObjects.Container {
 		}
 	}
 	
-	private drawYAxis(options: GridOptions) {
+	private drawYAxis(options: AxesOptions) {
 		let top = -this.axisLength / 2
 		let bottom = this.axisLength / 2
 		this.graphics.lineBetween(0, top, 0, bottom)

@@ -24,7 +24,6 @@ export function createGameConfig(): Phaser.Types.Core.GameConfig {
 		},
 		render: {
 			clearBeforeRender: false,
-			transparent: true,
 			failIfMajorPerformanceCaveat: true,
 			maxTextures: getMaxTexturesNum(),
 		},
@@ -46,7 +45,6 @@ export function createGameConfig(): Phaser.Types.Core.GameConfig {
 					plugin: rexawaitloaderplugin,
 					start: true,
 				},
-				
 				{
 					key: "NinePatchPlugin",
 					plugin: NinePatchPlugin,
@@ -73,7 +71,6 @@ function getScaleConfig(): Phaser.Types.Core.ScaleConfig {
 	return {
 		width: Config.SOURCE_GAME_WIDTH,
 		height: Config.SOURCE_GAME_HEIGHT,
-		// autoCenter: Phaser.Scale.CENTER_BOTH,
 		mode: Phaser.Scale.NONE,
 	} as Phaser.Types.Core.ScaleConfig
 }
