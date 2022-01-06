@@ -1,6 +1,7 @@
 import { RGB } from "./ProjectConfig"
 import { rgbaToNumber } from "./rgba-to-number"
 import { times } from "lodash-es"
+import { BitmapFont } from "../../GameFonts"
 
 export interface AxesOptions {
 	width: number
@@ -15,7 +16,7 @@ export interface AxesOptions {
 export class Axes extends Phaser.GameObjects.Container {
 	
 	private graphics: Phaser.GameObjects.Graphics
-	private texts: Phaser.GameObjects.Text[] // TODO replace with bitmap texts
+	private texts: Phaser.GameObjects.BitmapText[]
 	
 	private readonly axisLength = 2400
 	private readonly stepHeight = 10
@@ -26,24 +27,14 @@ export class Axes extends Phaser.GameObjects.Container {
 		
 		this.name = "axes"
 		
-		this.texts = times(100, () => this.createText())
-		
 		this.graphics = this.scene.add.graphics()
 		this.add(this.graphics)
+		
+		this.texts = times(100, () => this.createText())
 	}
 	
-	private createText(): Phaser.GameObjects.Text {
-		let style: Phaser.Types.GameObjects.Text.TextStyle = {
-			fontFamily: "Verdana",
-			fontStyle: "400",
-			fontSize: "18px",
-			color: "#ffffff",
-			align: "center",
-			resolution: 2,
-		}
-		
-		let text = this.scene.add.text(0, 0, "0", style)
-		text.setOrigin(0.5, 0.5)
+	private createText(): Phaser.GameObjects.BitmapText {
+		let text = this.scene.add.bitmapText(0, 0, BitmapFont.AXES_DIGITS, "0", 18)
 		text.kill()
 		
 		this.add(text)
@@ -115,7 +106,7 @@ export class Axes extends Phaser.GameObjects.Container {
 		}
 	}
 	
-	private addText(x: number, y: number, content: string, tint: number): Phaser.GameObjects.Text {
+	private addText(x: number, y: number, content: string, tint: number): Phaser.GameObjects.BitmapText {
 		let text = this.texts.find(text => !text.active)
 		if (!text) {
 			text = this.createText()

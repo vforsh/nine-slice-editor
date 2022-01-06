@@ -1,0 +1,93 @@
+{
+	"content": {
+		"content": "0123456789"
+	},
+	"font": {
+		"family": "Verdana",
+		"weight": 400,
+		"size": 36,
+		"lineHeight": 1,
+		"resolution": 2,
+		"color": {
+			"r": 255,
+			"g": 255,
+			"b": 255,
+			"a": 1
+		},
+		"padding": {
+			"x": 0,
+			"y": 0
+		},
+		"spacing": {
+			"x": 0,
+			"y": 0
+		}
+	},
+	"stroke": {
+		"color": {
+			"r": 0,
+			"g": 0,
+			"b": 0,
+			"a": 1
+		},
+		"thickness": 0
+	},
+	"shadow": {
+		"x": 0,
+		"y": 0,
+		"color": {
+			"r": 0,
+			"g": 0,
+			"b": 0,
+			"a": 1
+		},
+		"blur": 0,
+		"shadowStroke": false,
+		"shadowFill": true
+	},
+	"glow": {
+		"enabled": false,
+		"quality": 0.25,
+		"distance": 10,
+		"innerStrength": 0,
+		"outerStrength": 2,
+		"color": {
+			"r": 255,
+			"g": 255,
+			"b": 255
+		}
+	},
+	"layout": {
+		"bgColor": {
+			"r": 104,
+			"g": 104,
+			"b": 104
+		},
+		"method": "row"
+	},
+	"import": {
+		"project": "C:/Users/yafor/YandexDisk/nine-slice-editor/dev/assets/fonts/bitmap/axes-digits.project.json",
+		"custom": ""
+	},
+	"export": {
+		"name": "axes-digits",
+		"type": "json",
+		"config": "",
+		"texture": "",
+		"texturePacker": ""
+	},
+	"preview": {
+		"debug": true,
+		"debugColor": {
+			"r": 255,
+			"g": 255,
+			"b": 255,
+			"a": 0.25
+		},
+		"align": 1,
+		"maxWidth": 0,
+		"letterSpacing": 0,
+		"fontSize": 30,
+		"content": ""
+	}
+}

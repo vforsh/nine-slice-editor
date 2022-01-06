@@ -136,7 +136,7 @@ export class GameTexts extends EventEmitter {
 			WebFonts.DEFAULT_FAMILY = FontFamily.SANS_SERIF
 			WebFonts.DEFAULT_WEIGHT = FontWeight.BOLD
 		} else {
-			WebFonts.DEFAULT_FAMILY = FontFamily.POETSEN
+			WebFonts.DEFAULT_FAMILY = FontFamily.VERDANA
 			WebFonts.DEFAULT_WEIGHT = FontWeight.NORMAL
 		}
 	}

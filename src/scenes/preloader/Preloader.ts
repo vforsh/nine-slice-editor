@@ -3,6 +3,7 @@ import { ISceneTransition } from "../../sceneTransition/ISceneTransition"
 import { CanvasSceneTransition } from "../../sceneTransition/CanvasSceneTransition"
 import { BaseScene } from "../../robowhale/phaser3/scenes/BaseScene"
 import { GameStore } from "../../store/GameStore"
+import { BitmapFont } from "../../GameFonts"
 
 export class Preloader extends BaseScene {
 	
@@ -13,7 +14,12 @@ export class Preloader extends BaseScene {
 	}
 	
 	public preload() {
+		this.loadFonts()
 		this.loadSaveData()
+	}
+	
+	private loadFonts() {
+		this.load.bitmapFontJson(BitmapFont.AXES_DIGITS, "assets/fonts/bitmap/axes-digits.png", "assets/fonts/bitmap/axes-digits.json")
 	}
 	
 	private loadSaveData() {
