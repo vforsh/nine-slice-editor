@@ -1,5 +1,7 @@
 import { NinePatch } from "@koreez/phaser3-ninepatch"
 
+type Vector2Like = Phaser.Types.Math.Vector2Like
+
 export enum ResizeControlsEvent {
 	RESIZE = "ResizeControls_RESIZE",
 }
@@ -30,12 +32,17 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 	private bottomLeft: CornerControl
 	private cornerControls: CornerControl[]
 	private image: NinePatch
+	private tempVec: Vector2Like
 	
 	constructor(scene: Phaser.Scene, options: ResizeControlsOptions) {
 		super(scene)
 		
 		this.name = "resize-controls"
+		
 		this.options = options
+		
+		this.tempVec = { x: 0, y: 0 }
+		
 		this.addControls()
 		this.addCornerControls()
 		this.setThickness(this.options.thickness)
@@ -86,7 +93,7 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 	}
 	
 	private onDrag(control: ResizeControl, pointer: Phaser.Input.Pointer): void {
-		let position = this.pointToContainer({ x: pointer.x, y: pointer.y }) as { x: number, y: number }
+		let { x, y } = this.getLocalPointerPosition(pointer)
 		let center = { x: 0, y: 0 }
 		
 		let config = this.image.config
@@ -96,25 +103,25 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		
 		if (control === this._top) {
 			let max = center.y - minHeight / 2
-			this._top.y = Math.min(position.y, max)
+			this._top.y = Math.min(y, max)
 			
 			let offset = center.y - this._top.y
 			this._bottom.y = center.y + offset
 		} else if (control === this._bottom) {
 			let min = center.y + minHeight / 2
-			this._bottom.y = Math.max(min, position.y)
+			this._bottom.y = Math.max(min, y)
 			
 			let offset = this._bottom.y - center.y
 			this._top.y = center.y - offset
 		} else if (control === this._left) {
 			let max = center.x - minWidth / 2
-			this._left.x = Math.min(max, position.x)
+			this._left.x = Math.min(max, x)
 			
 			let offset = center.x - this._left.x
 			this._right.x = center.x + offset
 		} else if (control === this._right) {
 			let min = center.x + minWidth / 2
-			this._right.x = Math.max(min, position.x)
+			this._right.x = Math.max(min, x)
 			
 			let offset = this._right.x - center.x
 			this._left.x = center.x - offset
@@ -127,6 +134,13 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		}
 		
 		this.updateCornerPositions()
+	}
+	
+	private getLocalPointerPosition(pointer: Phaser.Input.Pointer): Vector2Like {
+		pointer.positionToCamera(this.scene.cameras.main, this.tempVec)
+		this.pointToContainer(this.tempVec, this.tempVec)
+		
+		return this.tempVec
 	}
 	
 	private updateVerticalLines(): void {

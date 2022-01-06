@@ -1,5 +1,6 @@
 import { IPatchesConfig, NinePatch } from "@koreez/phaser3-ninepatch"
 
+type Vector2Like = Phaser.Types.Math.Vector2Like
 type Control = Phaser.GameObjects.Image
 
 export enum NineSliceControlsEvent {
@@ -30,6 +31,7 @@ export class NineSliceControls extends Phaser.GameObjects.Container {
 	private _right: Control
 	private controls: Control[]
 	private image: NinePatch
+	private tempVec: Vector2Like
 	
 	constructor(scene: Phaser.Scene, options: NineSliceControlsOptions) {
 		super(scene)
@@ -37,6 +39,8 @@ export class NineSliceControls extends Phaser.GameObjects.Container {
 		this.name = "nine-slice-controls"
 		
 		this.options = options
+		
+		this.tempVec = { x: 0, y: 0 }
 		
 		this.addControls()
 		this.setThickness(this.options.thickness)
@@ -82,48 +86,55 @@ export class NineSliceControls extends Phaser.GameObjects.Container {
 	}
 	
 	private onDrag(control: Control, pointer: Phaser.Input.Pointer): void {
-		let position = this.pointToContainer({ x: pointer.x, y: pointer.y }) as { x: number, y: number }
-		let updateUniformly = pointer.event.shiftKey || this.options.symmetric
+		let { x, y } = this.getLocalPointerPosition(pointer)
+		let updateSymmetric = pointer.event.shiftKey || this.options.symmetric
 		let center = { x: 0, y: 0 }
 		let padding = this.options.padding
 		
 		if (control === this._top) {
 			let min = -this.image.height / 2 + padding
 			let max = center.y - padding
-			this._top.y = Phaser.Math.Clamp(position.y, min, max)
+			this._top.y = Phaser.Math.Clamp(y, min, max)
 			
-			if (updateUniformly) {
+			if (updateSymmetric) {
 				let offset = this._top.y - (min - padding)
 				this._bottom.y = this.image.height / 2 - offset
 			}
 		} else if (control === this._bottom) {
 			let min = center.y + padding
 			let max = this.image.height / 2 - padding
-			this._bottom.y = Phaser.Math.Clamp(position.y, min, max)
+			this._bottom.y = Phaser.Math.Clamp(y, min, max)
 			
-			if (updateUniformly) {
+			if (updateSymmetric) {
 				let offset = (max + padding) - this._bottom.y
 				this._top.y = -this.image.height / 2 + offset
 			}
 		} else if (control === this._left) {
 			let min = -this.image.width / 2 + padding
 			let max = center.x - padding
-			this._left.x = Phaser.Math.Clamp(position.x, min, max)
+			this._left.x = Phaser.Math.Clamp(x, min, max)
 			
-			if (updateUniformly) {
+			if (updateSymmetric) {
 				let offset = this._left.x - (min - padding)
 				this._right.x = this.image.width / 2 - offset
 			}
 		} else if (control === this._right) {
 			let min = center.x + padding
 			let max = this.image.width / 2 - padding
-			this._right.x = Phaser.Math.Clamp(position.x, min, max)
+			this._right.x = Phaser.Math.Clamp(x, min, max)
 			
-			if (updateUniformly) {
+			if (updateSymmetric) {
 				let offset = (max + padding) - this._right.x
 				this._left.x = -this.image.width / 2 + offset
 			}
 		}
+	}
+	
+	private getLocalPointerPosition(pointer: Phaser.Input.Pointer): Vector2Like {
+		pointer.positionToCamera(this.scene.cameras.main, this.tempVec)
+		this.pointToContainer(this.tempVec, this.tempVec)
+		
+		return this.tempVec
 	}
 	
 	private onDragEnd(control: Control): void {
