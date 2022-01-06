@@ -706,6 +706,8 @@ export class NineSliceEditor extends BaseScene {
 		this.onKeyDown("R", this.resetNineSliceImage, this)
 		this.onKeyDown("OPEN_BRACKET", () => this.axes.setDepth(NineSliceEditorDepth.GRID))
 		this.onKeyDown("CLOSED_BRACKET", () => this.axes.setDepth(NineSliceEditorDepth.GRID_ON_TOP))
+		this.onKeyDown("ONE", this.resetCameraZoom, this)
+		this.onKeyDown("F", this.setCameraMaxZoom, this)
 	}
 	
 	private toggleAxes(): void {
@@ -756,6 +758,21 @@ export class NineSliceEditor extends BaseScene {
 	
 	private resetCameraZoom() {
 		this.cameras.main.zoom = 1
+	}
+	
+	private setCameraMaxZoom(): void {
+		let padding = 20
+		let maxWidth = Config.GAME_WIDTH - padding * 2
+		let maxHeight = Config.GAME_HEIGHT - padding * 2
+		let zoom = Math.min(maxWidth / this.image.width, maxHeight / this.image.height)
+		
+		let camera = this.cameras.main
+		let isMaxZoom = Phaser.Math.Fuzzy.Equal(camera.zoom, zoom, 0.01)
+		if (isMaxZoom) {
+			camera.zoom = Math.max(1, zoom / 2)
+		} else {
+			camera.zoom = zoom
+		}
 	}
 	
 	private onPointerWheel(pointer: Phaser.Input.Pointer, objects, dx, dy: number): void {
