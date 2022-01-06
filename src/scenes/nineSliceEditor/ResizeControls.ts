@@ -44,17 +44,15 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		this.tempVec = { x: 0, y: 0 }
 		
 		this.addControls()
+		this.updateControlsHitAreas()
 		this.addCornerControls()
 		this.setThickness(this.options.thickness)
 	}
 	
 	private addControls() {
 		this._top = this.scene.add.image(0, 0, "__WHITE")
-		
 		this._bottom = this.scene.add.image(0, 0, "__WHITE")
-		
 		this._left = this.scene.add.image(0, 0, "__WHITE")
-		
 		this._right = this.scene.add.image(0, 0, "__WHITE")
 		
 		this.controls = [this._top, this._bottom, this._left, this._right]
@@ -160,6 +158,30 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		let height = this._bottom.y - this._top.y
 		
 		this.emit(ResizeControlsEvent.RESIZE, { width, height })
+	}
+	
+	private updateControlsHitAreas(): void {
+		let thickness = 20
+		
+		let top = this._top.input.hitArea as Phaser.Geom.Rectangle
+		top.width = this._top.displayWidth
+		top.height = thickness
+		top.y = -thickness / 2
+		
+		let bottom = this._bottom.input.hitArea as Phaser.Geom.Rectangle
+		bottom.width = this._bottom.displayWidth
+		bottom.height = thickness
+		bottom.y = -thickness / 2
+		
+		let left = this._left.input.hitArea as Phaser.Geom.Rectangle
+		left.width = thickness
+		left.height = this._left.displayHeight
+		left.x = -thickness / 2
+		
+		let right = this._right.input.hitArea as Phaser.Geom.Rectangle
+		right.width = thickness
+		right.height = this._right.displayHeight
+		right.x = -thickness / 2
 	}
 	
 	private addCornerControls() {

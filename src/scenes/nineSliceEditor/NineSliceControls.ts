@@ -43,6 +43,7 @@ export class NineSliceControls extends Phaser.GameObjects.Container {
 		this.tempVec = { x: 0, y: 0 }
 		
 		this.addControls()
+		this.updateControlsHitAreas()
 		this.setThickness(this.options.thickness)
 		this.addTexts()
 	}
@@ -141,6 +142,30 @@ export class NineSliceControls extends Phaser.GameObjects.Container {
 		this.emit(NineSliceControlsEvent.PATCHES_CHANGE, this.getPatches())
 	}
 	
+	private updateControlsHitAreas(): void {
+		let thickness = 20
+		
+		let top = this._top.input.hitArea as Phaser.Geom.Rectangle
+		top.width = this._top.displayWidth
+		top.height = thickness
+		top.y = -thickness / 2
+		
+		let bottom = this._bottom.input.hitArea as Phaser.Geom.Rectangle
+		bottom.width = this._bottom.displayWidth
+		bottom.height = thickness
+		bottom.y = -thickness / 2
+		
+		let left = this._left.input.hitArea as Phaser.Geom.Rectangle
+		left.width = thickness
+		left.height = this._left.displayHeight
+		left.x = -thickness / 2
+		
+		let right = this._right.input.hitArea as Phaser.Geom.Rectangle
+		right.width = thickness
+		right.height = this._right.displayHeight
+		right.x = -thickness / 2
+	}
+	
 	private addTexts() {
 	
 	}
@@ -150,7 +175,7 @@ export class NineSliceControls extends Phaser.GameObjects.Container {
 		
 		let { top, bottom, left, right } = this.getImageBounds()
 		
-		let config = image["config"] as IPatchesConfig
+		let config = this.image.config
 		
 		this._left.displayHeight = bottom - top
 		this._left.x = left + config.left

@@ -54,13 +54,13 @@ export const DEFAULT_CONFIG: ProjectConfig = Object.freeze({
 	},
 	nineSliceControls: {
 		padding: 5,
-		thickness: 6,
+		thickness: 2,
 		symmetric: true,
 		display: true,
 	},
 	resizeControls: {
 		padding: 10,
-		thickness: 10,
+		thickness: 2,
 		display: true,
 	},
 	import: {
