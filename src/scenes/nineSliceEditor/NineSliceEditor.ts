@@ -54,7 +54,6 @@ export class NineSliceEditor extends BaseScene {
 	
 	public preload(): void {
 		this.load.image(NineSliceEditor.DEFAULT_IMAGE, "assets/graphics/board.png")
-		this.load.image("black_rect", "assets/graphics/black_rect.png")
 		this.load.image("popup_back", "assets/graphics/popup_back.png")
 		this.load.image("atlas_back", "assets/graphics/atlas_back.png")
 	}

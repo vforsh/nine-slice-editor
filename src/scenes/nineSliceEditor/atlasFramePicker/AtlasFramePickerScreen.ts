@@ -8,8 +8,7 @@ export class AtlasFramePickerScreen extends PhaserScreen {
 	constructor(scene: Phaser.Scene, atlasTexture: Phaser.Textures.Texture) {
 		super(scene, {
 			name: "atlas-frame-picker",
-			backgroundKey: "black_rect",
-			backgroundFrame: "",
+			backgroundKey: "__BLACK",
 			backgroundAlpha: 0.85,
 			backgroundInteractive: true,
 		} as PhaserScreenOptions)
