@@ -618,7 +618,14 @@ export class NineSliceEditor extends BaseScene {
 			return
 		}
 		
-		this.image.originTexture.getFrameNames(false).forEach(frame => this.image.originTexture.remove(frame))
+		this.image.originTexture.getFrameNames(false).forEach(frame => {
+			// NinePatch plugin adds frames to the source texture in a format FRAMENAME|[0][0]
+			let match = /\|\[\d+\]\[\d+\]/.test(frame)
+			if (match) {
+				this.image.originTexture.remove(frame)
+			}
+		})
+		
 		this.image.destroy()
 		this.image = null
 	}
