@@ -3,9 +3,9 @@ import { ScaleType } from "../../robowhale/phaser3/scenes/Scaler"
 import { PanelsManager } from "./panels/PanelsManager"
 import { BrowserSyncService } from "../../BrowserSyncService"
 import { Config } from "../../Config"
-import { cloneDeep, merge } from "lodash-es"
+import { cloneDeep, mergeWith } from "lodash-es"
 import { blobToImage, blobToJson } from "../../robowhale/phaser3/utils/blob-to-json"
-import { DEFAULT_CONFIG, ProjectConfig, RGB, RGBA } from "./ProjectConfig"
+import { DEFAULT_CONFIG, ProjectConfig } from "./ProjectConfig"
 import { Grid } from "./Grid"
 import { GridPanelConfig } from "./panels/GridPanel"
 import { JsonValue } from "type-fest"
@@ -26,13 +26,8 @@ import { AtlasFramePickerScreen } from "./atlasFramePicker/AtlasFramePickerScree
 import { NineSliceEditorDepth } from "./NineSliceEditorDepth"
 import { PhaserScreenEvent } from "../../robowhale/phaser3/gameObjects/container/screen/Screen"
 import { AtlasFramePickerPopupEvent } from "./atlasFramePicker/AtlasFramePickerPopup"
+import { rgbaToNumber } from "./rgba-to-number"
 import RenderTexture = Phaser.GameObjects.RenderTexture
-
-/**
- * TODO
- * - add corners to resize controls
- * - display texts on resize & 9-slice controls
- */
 
 export class NineSliceEditor extends BaseScene {
 	
@@ -40,6 +35,7 @@ export class NineSliceEditor extends BaseScene {
 	
 	public isReady: boolean
 	public config: ProjectConfig
+	private uploadInput: HTMLInputElement
 	private panels: PanelsManager
 	private background: Phaser.GameObjects.Image
 	private grid: Grid
@@ -142,20 +138,7 @@ export class NineSliceEditor extends BaseScene {
 	}
 	
 	private updateImportConfig(importConfig: ProjectConfig["import"]): void {
-		merge(this.config.import, importConfig)
-		
-		if (this.config.import.texture === null) {
-			this.config.import.texture = ""
-		}
-		
-		if (this.config.import.atlas === null) {
-			this.config.import.atlas = ""
-		}
-		
-		if (this.config.import.frame === null) {
-			this.config.import.frame = ""
-		}
-		
+		mergeWith(this.config.import, importConfig, (_, srcValue) => srcValue ?? "")
 		this.panels?.importPanel.refresh()
 	}
 	
@@ -165,11 +148,13 @@ export class NineSliceEditor extends BaseScene {
 		this.addPanels()
 		this.addBackground()
 		this.addGrid()
-		this.addNineSliceImage(textureKey ?? NineSliceEditor.DEFAULT_IMAGE, frame)
+		this.addNineSliceImage({ textureKey: textureKey ?? NineSliceEditor.DEFAULT_IMAGE, frameName: frame })
 		this.addNineSliceControls()
 		this.addResizeControls()
 		
-		this.updateBackgroundColor(this.rgbaToNumber(this.config.grid.bgColor))
+		this.updateBackgroundColor(rgbaToNumber(this.config.grid.bgColor))
+		
+		this.updatePatchesMonitor(this.image.config)
 		
 		this.addKeyboardCallbacks()
 		
@@ -290,7 +275,7 @@ export class NineSliceEditor extends BaseScene {
 	
 	private addPanels() {
 		this.panels = new PanelsManager(this)
-		this.panels.gridPanel.on("change", this.onGridChange, this)
+		this.panels.gridPanel.on("change", this.onGridSettingsChange, this)
 		this.panels.nineSlicePanel.on("change", this.onNineSliceSettingsChange.bind(this))
 		this.panels.resizePanel.on("change", this.onResizeSettingsChange.bind(this))
 		this.panels.importPanel.importButton.on("click", this.onImportButtonClick.bind(this))
@@ -298,7 +283,7 @@ export class NineSliceEditor extends BaseScene {
 		this.panels.nineSliceDataPanel.copyButton.on("click", this.onCopyPatchesConfigButtonClick.bind(this))
 	}
 	
-	private onGridChange<K extends keyof GridPanelConfig>(config: GridPanelConfig, prop: K, value: GridPanelConfig[K]): void {
+	private onGridSettingsChange<K extends keyof GridPanelConfig>(config: GridPanelConfig, prop: K, value: GridPanelConfig[K]): void {
 		if (config.display) {
 			this.grid.revive()
 		} else {
@@ -380,7 +365,7 @@ export class NineSliceEditor extends BaseScene {
 		
 		BrowserSyncService.writeFile(this.config.export.texture, blob)
 			.then(response => this.onExportComplete(response))
-			.catch(error => console.log(`Can't save texture!`, error))
+			.catch(error => console.log(`Can't export texture!`, error))
 			.finally(() => {
 				this.panels.exportPanel.exportButton.disabled = false
 			})
@@ -528,8 +513,9 @@ export class NineSliceEditor extends BaseScene {
 		}
 	}
 	
-	private onImportComplete(textureKey: string, frame?: string): void {
-		this.updateImage(textureKey, frame)
+	private onImportComplete(textureKey: string, frameName?: string): void {
+		this.destroyNineSliceImage()
+		this.addNineSliceImage({ textureKey, frameName })
 		this.updatePatchesMonitor(this.image.config)
 		this.nineSliceControls.setImage(this.image)
 		this.resizeControls.setImage(this.image)
@@ -595,45 +581,6 @@ export class NineSliceEditor extends BaseScene {
 		return key
 	}
 	
-	private updateImage(key: string, frame?: string): void {
-		this.image?.destroy()
-		
-		let { width, height } = this.textures.getFrame(key, frame)
-		
-		let patches: IPatchesConfig = {
-			top: height * 0.25,
-			bottom: height * 0.25,
-			left: width * 0.25,
-			right: width * 0.25,
-		}
-		
-		this.image = this.add.ninePatch(0, 0, width, height, key, frame, patches)
-		this.image.setDepth(NineSliceEditorDepth.NINE_SLICE_IMAGE)
-		this.pin(this.image, 0.5, 0.5)
-		this.pinner.align(this.image, Config.GAME_WIDTH, Config.GAME_HEIGHT, Config.ASSETS_SCALE)
-		
-		this.updatePatchesMonitor(this.image["config"])
-	}
-	
-	private updatePatchesMonitor(config: IPatchesConfig): void {
-		merge(this.config.nineSlice, config)
-		this.panels.nineSliceDataPanel.updateMonitor()
-	}
-	
-	private rgbaToNumber(rgb: RGBA | RGB): number {
-		let { r, g, b } = rgb
-		let a = rgb["a"] ?? 1
-		
-		return Phaser.Display.Color.GetColor32(r, g, b, a)
-	}
-	
-	private updateBackgroundColor(color: number): void {
-		let { r, g, b, a } = Phaser.Display.Color.ColorToRGBA(color)
-		this.game.canvas.parentElement.style.backgroundColor = `rgba(${r},${g},${b},${a})`
-		
-		this.background?.setTintFill(color)
-	}
-	
 	private addBackground() {
 		this.background = this.add.image(0, 0, "__WHITE")
 		this.size(this.background, ScaleType.FILL)
@@ -646,8 +593,31 @@ export class NineSliceEditor extends BaseScene {
 		this.pin(this.grid, 0.5, 0.5)
 	}
 	
-	private addNineSliceImage(textureKey: string, frame?: string) {
-		this.updateImage(textureKey, frame)
+	private addNineSliceImage(options: { textureKey: string, frameName?: string, width?: number, height?: number, patches?: IPatchesConfig }): void {
+		let frame = this.textures.getFrame(options.textureKey, options.frameName)
+		let width = options.width ?? frame.width
+		let height = options.height ?? frame.height
+		let patches = options.patches ?? {
+			top: height * 0.25,
+			bottom: height * 0.25,
+			left: width * 0.25,
+			right: width * 0.25,
+		}
+		
+		this.image = this.add.ninePatch(0, 0, width, height, options.textureKey, options.frameName, patches)
+		this.image.setDepth(NineSliceEditorDepth.NINE_SLICE_IMAGE)
+		this.pin(this.image, 0.5, 0.5)
+		this.pinner.align(this.image, Config.GAME_WIDTH, Config.GAME_HEIGHT, Config.ASSETS_SCALE)
+	}
+	
+	private destroyNineSliceImage(): void {
+		if (!this.image) {
+			return
+		}
+		
+		this.image.originTexture.getFrameNames(false).forEach(frame => this.image.originTexture.remove(frame))
+		this.image.destroy()
+		this.image = null
 	}
 	
 	private addNineSliceControls() {
@@ -661,21 +631,17 @@ export class NineSliceEditor extends BaseScene {
 	}
 	
 	private onPatchesChange(patches: IPatchesConfig): void {
-		this.updatePatchesMonitor(patches)
+		let { width, height } = this.image
+		let frame = this.image.originFrame
+		let textureKey = frame.texture.key
+		let frameName = frame.name
 		
-		/*let { width, height } = this.image
-		let frame = this.textures.getFrame("nine-patch")
+		this.destroyNineSliceImage()
+		this.addNineSliceImage({ textureKey, frameName, width, height, patches })
+		this.updatePatchesMonitor(this.image.config)
 		
-		console.log("NineSliceEditor.onPatchesChange", patches)
-		
-		this.image.destroy()
-		
-		this.image = this.add.ninePatch(0, 0, width, height, frame.texture.key, null, patches)
-		// this.image.resize(width, height)
-		this.pin(this.image, 0.5, 0.5)
-		this.pinner.align(this.image, Config.GAME_WIDTH, Config.GAME_HEIGHT, Config.ASSETS_SCALE)
-		
-		this.nineSliceControls.syncWithImage(this.image)*/
+		this.nineSliceControls.setImage(this.image)
+		this.resizeControls.setImage(this.image)
 	}
 	
 	private addResizeControls() {
@@ -693,12 +659,25 @@ export class NineSliceEditor extends BaseScene {
 		this.nineSliceControls.setImage(this.image)
 	}
 	
+	private updateBackgroundColor(color: number): void {
+		let { r, g, b, a } = Phaser.Display.Color.ColorToRGBA(color)
+		this.game.canvas.parentElement.style.backgroundColor = `rgba(${r},${g},${b},${a})`
+		
+		this.background?.setTintFill(color)
+	}
+	
+	private updatePatchesMonitor(config: IPatchesConfig): void {
+		mergeWith(this.config.nineSlice, config, (_, srcValue) => Phaser.Math.RoundTo(srcValue, -2))
+		this.panels.nineSliceDataPanel.updateMonitor()
+	}
+	
 	private addKeyboardCallbacks() {
 		this.onKeyDown("G", this.toggleGrid, this)
 		this.onKeyDown("Q", this.toggleNineSliceControls, this)
 		this.onKeyDown("W", this.toggleResizeControls, this)
 		this.onKeyDown("I", this.triggerFileUpload, this)
 		this.onKeyDown("E", this.onExportButtonClick, this)
+		this.onKeyDown("C", this.onCopyPatchesConfigButtonClick, this)
 	}
 	
 	private toggleGrid(): void {
