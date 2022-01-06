@@ -33148,7 +33148,9 @@ var Phaser = (function() {
           if (this.parentContainer) {
             this.parentContainer.pointToContainer(source, output);
           } else {
-            output = new Vector2(source.x, source.y);
+            //output = new Vector2(source.x, source.y);
+            output.x = source.x;
+            output.y = source.y;
           }
           var tempMatrix = this.tempTransformMatrix;
           tempMatrix.applyITRS(this.x, this.y, this.rotation, this.scaleX, this.scaleY);
