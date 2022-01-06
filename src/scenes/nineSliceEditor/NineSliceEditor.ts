@@ -589,6 +589,7 @@ export class NineSliceEditor extends BaseScene {
 	
 	private addGrid() {
 		this.grid = new Grid(this)
+		this.grid.setDepth(NineSliceEditorDepth.GRID)
 		this.add.existing(this.grid)
 		this.pin(this.grid, 0.5, 0.5)
 	}
@@ -679,6 +680,8 @@ export class NineSliceEditor extends BaseScene {
 		this.onKeyDown("E", this.onExportButtonClick, this)
 		this.onKeyDown("C", this.onCopyPatchesConfigButtonClick, this)
 		this.onKeyDown("R", this.resetNineSliceImage, this)
+		this.onKeyDown("OPEN_BRACKET", () => this.grid.setDepth(NineSliceEditorDepth.GRID))
+		this.onKeyDown("CLOSED_BRACKET", () => this.grid.setDepth(NineSliceEditorDepth.GRID_ON_TOP))
 	}
 	
 	private toggleGrid(): void {

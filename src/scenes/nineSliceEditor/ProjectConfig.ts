@@ -12,8 +12,8 @@ export type RGBA = RGB & {
 export interface ProjectConfig {
 	grid: {
 		bgColor: RGB
-		xStep: number
-		yStep: number
+		step: number
+		subSteps: number
 		color: RGB
 		alpha: number
 		thickness: number
@@ -45,10 +45,10 @@ export interface ProjectConfig {
 export const DEFAULT_CONFIG: ProjectConfig = Object.freeze({
 	grid: {
 		bgColor: { r: 104, g: 104, b: 104 },
-		xStep: 20,
-		yStep: 20,
+		step: 100,
+		subSteps: 5,
 		color: { r: 255, g: 255, b: 255 },
-		alpha: 0.25,
+		alpha: 1,
 		thickness: 1,
 		display: true,
 	},

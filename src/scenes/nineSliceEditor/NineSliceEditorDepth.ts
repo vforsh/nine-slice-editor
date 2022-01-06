@@ -1,6 +1,8 @@
 export enum NineSliceEditorDepth {
+	GRID = 1,
 	NINE_SLICE_IMAGE = 2,
 	NINE_SLICE_CONTROLS,
 	RESIZE_CONTROLS,
+	GRID_ON_TOP,
 	ATLAS_FRAME_PICKER,
 }
