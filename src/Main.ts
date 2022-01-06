@@ -14,13 +14,11 @@ import { HowlerWrapper } from "./audio/HowlerWrapper"
 import { LoadingOverlay } from "./LoadingOverlay"
 import { Howler } from "howler"
 import { NineSliceEditor } from "./scenes/nineSliceEditor/NineSliceEditor"
-import WebGLRenderer = Phaser.Renderer.WebGL.WebGLRenderer
 import { GameStash } from "./stash/GameStash"
+import WebGLRenderer = Phaser.Renderer.WebGL.WebGLRenderer
 
 export class Main extends Phaser.Game {
 	
-	public static development = true
-	public static editorEnabled = true
 	public rendererType: RendererType
 	public audioType: AudioType
 	public audio: HowlerWrapper

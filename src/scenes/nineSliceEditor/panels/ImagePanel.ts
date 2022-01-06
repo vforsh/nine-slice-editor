@@ -12,7 +12,7 @@ export class ImagePanel extends EditorPanel {
 	private sizeMonitor: MonitorBindingApi<string>
 	private patchesConfig: { data: string }
 	private patchesMonitor: MonitorBindingApi<string>
-	public copyButton: ButtonApi
+	public copyPatchesButton: ButtonApi
 	
 	constructor(scene: Phaser.Scene, container: HTMLElement, config: ImagePanelConfig) {
 		super(scene, container, "Image")
@@ -35,7 +35,7 @@ export class ImagePanel extends EditorPanel {
 			label: "patches",
 		})
 		
-		this.copyButton = this.panel.addButton({ title: "Copy to clipboard" })
+		this.copyPatchesButton = this.panel.addButton({ title: "Copy to clipboard" })
 	}
 	
 	private stringifyConfig(config: JsonObject): string {

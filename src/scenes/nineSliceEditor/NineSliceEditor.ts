@@ -51,12 +51,6 @@ export class NineSliceEditor extends BaseScene {
 		this.config = cloneDeep(DEFAULT_CONFIG)
 	}
 	
-	public preload(): void {
-		this.load.image(NineSliceEditor.DEFAULT_IMAGE, "assets/graphics/board.png")
-		this.load.image("popup_back", "assets/graphics/popup_back.png")
-		this.load.image("atlas_back", "assets/graphics/atlas_back.png")
-	}
-	
 	public async create() {
 		let texture = UrlParams.get("texture")
 		let atlas = UrlParams.get("atlas")
@@ -279,7 +273,7 @@ export class NineSliceEditor extends BaseScene {
 		this.panels.resizePanel.on("change", this.onResizeSettingsChange.bind(this))
 		this.panels.importPanel.importButton.on("click", this.onImportButtonClick.bind(this))
 		this.panels.exportPanel.exportButton.on("click", this.onExportButtonClick.bind(this))
-		this.panels.imagePanel.copyButton.on("click", this.onCopyPatchesConfigButtonClick.bind(this))
+		this.panels.imagePanel.copyPatchesButton.on("click", this.onCopyPatchesButtonClick.bind(this))
 	}
 	
 	private onGridSettingsChange<K extends keyof AxesPanelConfig>(config: AxesPanelConfig, prop: K, value: AxesPanelConfig[K]): void {
@@ -466,7 +460,7 @@ export class NineSliceEditor extends BaseScene {
 		})
 	}
 	
-	private onCopyPatchesConfigButtonClick(): void {
+	private onCopyPatchesButtonClick(): void {
 		let value = this.panels.imagePanel.getPatchesMonitorValue()
 		
 		copyToClipboard(value)
@@ -700,7 +694,7 @@ export class NineSliceEditor extends BaseScene {
 		this.onKeyDown("I", this.triggerFileUpload, this)
 		this.onKeyDown("U", this.triggerFileUpload, this)
 		this.onKeyDown("E", this.onExportButtonClick, this)
-		this.onKeyDown("C", this.onCopyPatchesConfigButtonClick, this)
+		this.onKeyDown("C", this.onCopyPatchesButtonClick, this)
 		this.onKeyDown("R", this.resetNineSliceImage, this)
 		this.onKeyDown("OPEN_BRACKET", () => this.axes.setDepth(NineSliceEditorDepth.GRID))
 		this.onKeyDown("CLOSED_BRACKET", () => this.axes.setDepth(NineSliceEditorDepth.GRID_ON_TOP))

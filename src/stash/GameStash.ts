@@ -3,8 +3,6 @@ import type { Font } from "opentype.js"
 const GAME_STASH = {
 	webp: false,
 	avif: false,
-	development: false,
-	editorEnabled: false,
 	num: 1,
 	fonts: new Map<string, Font>(),
 }

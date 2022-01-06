@@ -4,6 +4,7 @@ import { CanvasSceneTransition } from "../../sceneTransition/CanvasSceneTransiti
 import { BaseScene } from "../../robowhale/phaser3/scenes/BaseScene"
 import { GameStore } from "../../store/GameStore"
 import { BitmapFont } from "../../GameFonts"
+import { NineSliceEditor } from "../nineSliceEditor/NineSliceEditor"
 
 export class Preloader extends BaseScene {
 	
@@ -14,8 +15,15 @@ export class Preloader extends BaseScene {
 	}
 	
 	public preload() {
+		this.loadGraphics()
 		this.loadFonts()
 		this.loadSaveData()
+	}
+	
+	private loadGraphics() {
+		this.load.image(NineSliceEditor.DEFAULT_IMAGE, "assets/graphics/board.png")
+		this.load.image("popup_back", "assets/graphics/popup_back.png")
+		this.load.image("atlas_back", "assets/graphics/atlas_back.png")
 	}
 	
 	private loadFonts() {

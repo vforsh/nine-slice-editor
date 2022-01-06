@@ -1,9 +1,8 @@
 ﻿import { SceneKey } from "./SceneKey"
 import { GlobalScene } from "./global/GlobalScene"
-import { GameScaler, GameScalerOptions } from "../scale/GameScaler"
+import { GameScaler } from "../scale/GameScaler"
 import { SentryWrapper } from "../SentryWrapper"
 import { UrlParams } from "../UrlParams"
-import { Main } from "../Main"
 import WebGLRenderer = Phaser.Renderer.WebGL.WebGLRenderer
 
 export class Boot extends Phaser.Scene {
@@ -51,12 +50,7 @@ export class Boot extends Phaser.Scene {
 	}
 	
 	private addScaler() {
-		let resizeDebounceInterval = Main.development ? 0 : 200
-		let options: GameScalerOptions = {
-			resizeDebounceInterval,
-		}
-		
-		this.game.scaler = new GameScaler(this.game, options)
+		this.game.scaler = new GameScaler(this.game, { resizeDebounceInterval: 0 })
 	}
 	
 	private addCpuThrottling() {

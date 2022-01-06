@@ -19,9 +19,6 @@ export function createGameConfig(): Phaser.Types.Core.GameConfig {
 		scale: getScaleConfig(),
 		parent: "canvas-container",
 		type: getRenderType(),
-		fps: {
-			deltaHistory: 20,
-		},
 		render: {
 			clearBeforeRender: false,
 			failIfMajorPerformanceCaveat: true,
