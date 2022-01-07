@@ -33,22 +33,11 @@ module.exports = {
 	notify: false,
 	reloadDebounce: 500,
 	ui: false,
+	online: false,
 	middleware: [
 		{
 			route: "/screenshot",
 			handle: require("./middleware/save-screenshot"),
-		},
-		{
-			route: "/bm-font/save",
-			handle: require("./middleware/save-bmfont"),
-		},
-		{
-			route: "/fonts",
-			handle: require("./middleware/get-fonts-list"),
-		},
-		{
-			route: "/projects",
-			handle: require("./middleware/get-projects-list"),
 		},
 		{
 			route: "/read-file",
