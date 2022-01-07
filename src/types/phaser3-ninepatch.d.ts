@@ -6,9 +6,9 @@ declare class NinePatch {
 }
 
 declare interface NinePatch extends NinePatchBase {
-	originTexture: Phaser.Textures.Texture
-	originFrame: Phaser.Textures.Frame
-	config: IPatchesConfig
+	readonly originTexture: Phaser.Textures.Texture
+	readonly originFrame: Phaser.Textures.Frame
+	readonly config: IPatchesConfig
 }
 
 declare module Phaser {
