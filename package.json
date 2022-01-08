@@ -42,6 +42,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"@koreez/phaser3-ninepatch": "^2.0.2",
+		"@robowhale/phaser3-ninepatch-types-fix": "^1.0.4",
 		"@sentry/browser": "^6.1.0",
 		"@tweakpane/plugin-essentials": "^0.1.4",
 		"@types/browser-sync": "^2.26.3",

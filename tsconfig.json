@@ -34,5 +34,8 @@
 	],
 	"include": [
 		"src/**/*.ts"
+	],
+	"files": [
+		"node_modules/@robowhale/phaser3-ninepatch-types-fix/index.d.ts"
 	]
 }
