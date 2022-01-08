@@ -112,7 +112,6 @@ module.exports = function(grunt) {
 					"./prod/js/polyfills.min.js",
 					"./prod/js/sentry.min.js",
 					"./prod/js/howler.core.min.js",
-					"./prod/js/ResizeSensor.js",
 					"./prod/js/idb-keyval.min.js",
 					"./prod/js/phaser.custom.min.js",
 					"./prod/js/rexawaitloaderplugin.min.js",
