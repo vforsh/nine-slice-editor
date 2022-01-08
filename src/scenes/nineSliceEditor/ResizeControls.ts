@@ -130,6 +130,8 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		}
 		
 		this.updateCornerPositions()
+		
+		this.onDragEnd(control)
 	}
 	
 	private getLocalPointerPosition(pointer: Phaser.Input.Pointer): Vector2Like {

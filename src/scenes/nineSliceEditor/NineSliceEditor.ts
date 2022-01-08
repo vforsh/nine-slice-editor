@@ -27,6 +27,7 @@ import { PhaserScreenEvent } from "../../robowhale/phaser3/gameObjects/container
 import { AtlasFramePickerPopupEvent } from "./atlasFramePicker/AtlasFramePickerPopup"
 import { rgbaToNumber } from "./rgba-to-number"
 import RenderTexture = Phaser.GameObjects.RenderTexture
+import RoundTo = Phaser.Math.RoundTo
 
 export class NineSliceEditor extends BaseScene {
 	
@@ -151,8 +152,8 @@ export class NineSliceEditor extends BaseScene {
 		
 		this.updateBackgroundColor(rgbaToNumber(this.config.axes.bgColor))
 		
-		this.updateSizeMonitor(this.getImageSizeConfig())
-		this.updatePatchesMonitor(this.image.config)
+		this.updateImageSizeMonitor(this.image)
+		this.updateImagePatchesMonitor(this.image.config)
 		
 		this.addKeyboardCallbacks()
 		
@@ -524,8 +525,8 @@ export class NineSliceEditor extends BaseScene {
 	private onImportComplete(textureKey: string, frameName?: string): void {
 		this.destroyNineSliceImage()
 		this.addNineSliceImage({ textureKey, frameName })
-		this.updateSizeMonitor(this.getImageSizeConfig())
-		this.updatePatchesMonitor(this.image.config)
+		this.updateImageSizeMonitor(this.image)
+		this.updateImagePatchesMonitor(this.image.config)
 		this.nineSliceControls.setImage(this.image)
 		this.resizeControls.setImage(this.image)
 	}
@@ -655,8 +656,8 @@ export class NineSliceEditor extends BaseScene {
 		
 		this.destroyNineSliceImage()
 		this.addNineSliceImage({ textureKey, frameName, width, height, patches })
-		this.updateSizeMonitor(this.getImageSizeConfig())
-		this.updatePatchesMonitor(this.image.config)
+		this.updateImageSizeMonitor(this.image)
+		this.updateImagePatchesMonitor(this.image.config)
 		
 		this.nineSliceControls.setImage(this.image)
 		this.resizeControls.setImage(this.image)
@@ -675,7 +676,7 @@ export class NineSliceEditor extends BaseScene {
 	private onSizeChange(size: { width: number, height: number }): void {
 		this.image.resize(size.width, size.height)
 		this.nineSliceControls.setImage(this.image)
-		this.updateSizeMonitor(this.getImageSizeConfig())
+		this.updateImageSizeMonitor(this.image)
 	}
 	
 	private updateBackgroundColor(color: number): void {
@@ -685,13 +686,21 @@ export class NineSliceEditor extends BaseScene {
 		this.background?.setTintFill(color)
 	}
 	
-	private updateSizeMonitor(config: SizeConfig): void {
-		mergeWith(this.config.image.size, config, (_, srcValue) => Phaser.Math.RoundTo(srcValue, -2))
+	private updateImageSizeMonitor(image: NinePatch): void {
+		let size = this.config.image.size
+		size.width = RoundTo(image.width, -2)
+		size.height = RoundTo(image.height, -2)
+		
 		this.panels.imagePanel.updateSizeMonitor()
 	}
 	
-	private updatePatchesMonitor(config: IPatchesConfig): void {
-		mergeWith(this.config.image.patches, config, (_, srcValue) => Phaser.Math.RoundTo(srcValue, -2))
+	private updateImagePatchesMonitor(config: IPatchesConfig): void {
+		let patches = this.config.image.patches
+		patches.top = RoundTo(config.top, -2)
+		patches.right = RoundTo(config.right, -2)
+		patches.bottom = RoundTo(config.bottom, -2)
+		patches.left = RoundTo(config.left, -2)
+		
 		this.panels.imagePanel.updatePatchesMonitor()
 	}
 	
@@ -743,8 +752,8 @@ export class NineSliceEditor extends BaseScene {
 		
 		this.destroyNineSliceImage()
 		this.addNineSliceImage({ textureKey, frameName })
-		this.updateSizeMonitor(this.getImageSizeConfig())
-		this.updatePatchesMonitor(this.image.config)
+		this.updateImageSizeMonitor(this.image)
+		this.updateImagePatchesMonitor(this.image.config)
 		this.nineSliceControls.setImage(this.image)
 		this.resizeControls.setImage(this.image)
 		
