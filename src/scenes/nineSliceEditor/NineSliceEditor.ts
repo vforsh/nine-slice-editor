@@ -72,6 +72,11 @@ export class NineSliceEditor extends BaseScene {
 		if (texture && atlas && !frame) {
 			let { textureKey } = await this.loadAtlas(texture, atlas)
 			let frame = await this.promptAtlasFrame(textureKey)
+			if (!frame) {
+				this.doCreate()
+				return
+			}
+			
 			this.updateImportConfig({ texture, atlas, frame })
 			this.doCreate(textureKey, frame)
 			return
@@ -262,6 +267,11 @@ export class NineSliceEditor extends BaseScene {
 		this.textures.addAtlas(key, image, atlas)
 		
 		let frame = await this.promptAtlasFrame(key)
+		if (!frame) {
+			this.textures.remove(key)
+			return
+		}
+		
 		this.updateImportConfig({ texture: "", atlas: "", frame: "" })
 		this.onImportComplete(key, frame)
 	}
@@ -486,6 +496,11 @@ export class NineSliceEditor extends BaseScene {
 		if (texture && atlas && !frame) {
 			let { textureKey } = await this.loadAtlas(texture, atlas)
 			let frame = await this.promptAtlasFrame(textureKey)
+			if (!frame) {
+				this.textures.remove(textureKey)
+				return
+			}
+			
 			this.updateImportConfig({ texture, atlas, frame })
 			this.onImportComplete(textureKey, frame)
 			return
