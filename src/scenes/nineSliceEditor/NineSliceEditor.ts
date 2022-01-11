@@ -20,12 +20,13 @@ import { downloadBlob } from "../../robowhale/phaser3/utils/download-blob"
 import slash from "slash"
 import { type ExecaReturnValue } from "execa"
 import { GetTexturePackerPathPanel } from "./modals/GetTexturePackerPathPanel"
-import { ModalPanelEvent } from "./modals/ModalPanel"
+import { ModalPanel, ModalPanelEvent } from "./modals/ModalPanel"
 import { AtlasFramePickerScreen } from "./atlasFramePicker/AtlasFramePickerScreen"
 import { NineSliceEditorDepth } from "./NineSliceEditorDepth"
 import { PhaserScreenEvent } from "../../robowhale/phaser3/gameObjects/container/screen/Screen"
 import { AtlasFramePickerPopupEvent } from "./atlasFramePicker/AtlasFramePickerPopup"
 import { rgbaToNumber } from "./rgba-to-number"
+import { SetImageSizePanel, SetImageSizePanelConfig } from "./modals/SetImageSizePanel"
 import RenderTexture = Phaser.GameObjects.RenderTexture
 import RoundTo = Phaser.Math.RoundTo
 
@@ -724,6 +725,7 @@ export class NineSliceEditor extends BaseScene {
 		this.onKeyDown("CLOSED_BRACKET", () => this.axes.setDepth(NineSliceEditorDepth.GRID_ON_TOP))
 		this.onKeyDown("ONE", this.resetCameraZoom, this)
 		this.onKeyDown("F", this.setCameraMaxZoom, this)
+		this.onKeyDown("S", this.showSetImageSizeWindow, this)
 	}
 	
 	private toggleAxes(): void {
@@ -789,6 +791,29 @@ export class NineSliceEditor extends BaseScene {
 		} else {
 			camera.zoom = zoom
 		}
+	}
+	
+	private showSetImageSizeWindow(): void {
+		let { left, right, top, bottom } = this.image.config
+		let { padding } = this.config.nineSliceControls
+		let config: SetImageSizePanelConfig = {
+			width: this.image.width,
+			height: this.image.height,
+			minWidth: left + right + padding * 2,
+			minHeight: top + bottom + padding * 2,
+		}
+		
+		let window = new SetImageSizePanel(this, config)
+		window.once(ModalPanelEvent.HIDE, () => window.destroy())
+		window.once(ModalPanelEvent.OK_CLICK, this.applyNewImageSize, this)
+		window.show()
+	}
+	
+	private applyNewImageSize(panel: ModalPanel<SetImageSizePanelConfig>, config: SetImageSizePanelConfig): void {
+		this.onSizeChange(config)
+		this.resizeControls.setImage(this.image)
+		
+		panel.destroy()
 	}
 	
 	private onPointerWheel(pointer: Phaser.Input.Pointer, objects, dx, dy: number): void {

@@ -6,13 +6,15 @@ import { ButtonApi } from "@tweakpane/core"
 export enum ModalPanelEvent {
 	CANCEL_CLICK = "__CANCEL_CLICK",
 	OK_CLICK = "__OK_CLICK",
-	HIDE = "__HIDE"
+	SHOW = "__SHOW",
+	HIDE = "__HIDE",
 }
 
 export class ModalPanel<T extends object> extends EventEmitter {
 	
 	public scene: Phaser.Scene
-	private hideOnBgClick: boolean = true
+	protected hideOnEsc = true
+	protected hideOnBgClick = true
 	protected container: HTMLDivElement
 	protected containerInner: HTMLDivElement
 	protected panel: Pane
@@ -22,9 +24,24 @@ export class ModalPanel<T extends object> extends EventEmitter {
 		super()
 		
 		this.scene = scene
+		this.scene.input.keyboard.on(`keydown-ESC`, this.onEscKeyDown, this)
+		this.scene.input.keyboard.on(`keydown-ENTER`, this.onEnterKeyDown, this)
+		
 		this.addContainers()
 		this.addPanel(title, this.containerInner)
 		this.disableTitleButton()
+	}
+	
+	private onEscKeyDown(): void {
+		if (this.hideOnEsc && this.isVisible()) {
+			this.hide()
+		}
+	}
+	
+	private onEnterKeyDown(): void {
+		if (this.isVisible()) {
+			this.onOkButtonClick()
+		}
 	}
 	
 	private addContainers() {
@@ -87,6 +104,7 @@ export class ModalPanel<T extends object> extends EventEmitter {
 	public show(): void {
 		this.container.style.display = "flex"
 		cssAnimate(this.container, "animate__fadeIn", 100)
+		this.emit(ModalPanelEvent.SHOW, this)
 	}
 	
 	public hide() {
@@ -94,11 +112,18 @@ export class ModalPanel<T extends object> extends EventEmitter {
 		this.emit(ModalPanelEvent.HIDE, this)
 	}
 	
+	public isVisible(): boolean {
+		return this.container.style.display === "flex"
+	}
+	
 	public setZoom(zoom: number): void {
 		this.container.style.zoom = zoom.toString()
 	}
 	
 	public destroy(): void {
+		this.scene.input.keyboard.off(`keydown-ESC`, this.onEscKeyDown, this)
+		this.scene.input.keyboard.off(`keydown-ENTER`, this.onEnterKeyDown, this)
+		
 		this.container.remove()
 		this.panel.dispose()
 	}
