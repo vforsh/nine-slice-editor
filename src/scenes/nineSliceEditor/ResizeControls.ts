@@ -1,3 +1,5 @@
+import { BitmapFont } from "../../GameFonts"
+
 type Vector2Like = Phaser.Types.Math.Vector2Like
 
 export enum ResizeControlsEvent {
@@ -24,6 +26,11 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 	private _left: ResizeControl
 	private _right: ResizeControl
 	private controls: ResizeControl[]
+	private topText: Phaser.GameObjects.BitmapText
+	private bottomText: Phaser.GameObjects.BitmapText
+	private leftText: Phaser.GameObjects.BitmapText
+	private rightText: Phaser.GameObjects.BitmapText
+	private texts: Phaser.GameObjects.BitmapText[]
 	private topLeft: CornerControl
 	private topRight: CornerControl
 	private bottomRight: CornerControl
@@ -44,6 +51,7 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		this.addControls()
 		this.updateControlsHitAreas()
 		this.addCornerControls()
+		this.addTexts()
 		this.setThickness(this.options.thickness)
 	}
 	
@@ -74,6 +82,16 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		control.setTintFill(this.ACTIVE_TINT)
 		control.corners.forEach(corner => corner.setFillStyle(this.ACTIVE_TINT))
 		
+		if (control === this._top || control === this._bottom) {
+			this.topText.revive()
+			this.bottomText.revive()
+		} else {
+			this.leftText.revive()
+			this.rightText.revive()
+		}
+		
+		this.updateTexts()
+		
 		this.bringToTop(control)
 		this.bringToTop(control.corners[0])
 		this.bringToTop(control.corners[1])
@@ -82,6 +100,14 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 	private onPointerOut(control: ResizeControl): void {
 		control.setTintFill(this.INACTIVE_TINT)
 		control.corners.forEach(corner => corner.setFillStyle(this.INACTIVE_TINT))
+		
+		if (control === this._top || control === this._bottom) {
+			this.topText.kill()
+			this.bottomText.kill()
+		} else {
+			this.leftText.kill()
+			this.rightText.kill()
+		}
 	}
 	
 	private onDragStart(control: ResizeControl): void {
@@ -130,6 +156,8 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		}
 		
 		this.updateCornerPositions()
+		
+		this.updateTexts()
 		
 		this.onDragEnd(control)
 	}
@@ -247,6 +275,55 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		this.topRight.setPosition(right, top)
 		this.bottomRight.setPosition(right, bottom)
 		this.bottomLeft.setPosition(left, bottom)
+	}
+	
+	private addTexts() {
+		this.topText = this.createText()
+		this.topText.setOrigin(0, 1)
+		
+		this.bottomText = this.createText()
+		this.bottomText.setOrigin(1, 0)
+		
+		this.leftText = this.createText()
+		this.leftText.setOrigin(1, 0)
+		
+		this.rightText = this.createText()
+		this.rightText.setOrigin(0, 1)
+		
+		this.texts = [this.topText, this.bottomText, this.rightText, this.leftText]
+		this.texts.forEach(text => {
+			text.kill()
+		})
+	}
+	
+	private createText(): Phaser.GameObjects.BitmapText {
+		let text = this.scene.add.bitmapText(0, 0, BitmapFont.AXES_DIGITS, "0", 24)
+		this.add(text)
+		
+		return text
+	}
+	
+	private updateTexts(): void {
+		let width = this.image.width.toString()
+		let height = this.image.height.toString()
+		
+		let margin = 10
+		
+		this.topText.setText(height)
+		this.topText.x = this._left.x + margin
+		this.topText.y = this._top.y - margin
+		
+		this.bottomText.setText(height)
+		this.bottomText.x = this._right.x - margin
+		this.bottomText.y = this._bottom.y + margin
+		
+		this.leftText.setText(width)
+		this.leftText.x = this._left.x - margin
+		this.leftText.y = this._top.y + margin
+		
+		this.rightText.setText(width)
+		this.rightText.x = this._right.x + margin
+		this.rightText.y = this._bottom.y - margin
 	}
 	
 	public setImage(image: NinePatch): void {
