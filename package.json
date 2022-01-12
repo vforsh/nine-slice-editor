@@ -119,7 +119,7 @@
 		"time-stamp": "^2.2.0",
 		"tmp": "^0.2.1",
 		"type-fest": "^2.8.0",
-		"typescript": "^4.5.2",
+		"typescript": "^4.5.4",
 		"write-json-file": "^4.3.0"
 	}
 }
