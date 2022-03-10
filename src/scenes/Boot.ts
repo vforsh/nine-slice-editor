@@ -2,7 +2,6 @@
 import { GlobalScene } from "./global/GlobalScene"
 import { GameScaler } from "../scale/GameScaler"
 import { SentryWrapper } from "../SentryWrapper"
-import { UrlParams } from "../UrlParams"
 import WebGLRenderer = Phaser.Renderer.WebGL.WebGLRenderer
 
 export class Boot extends Phaser.Scene {
@@ -12,7 +11,6 @@ export class Boot extends Phaser.Scene {
 		this.removeUnusedPipelines()
 		this.addBlackTexture()
 		this.addScaler()
-		this.addCpuThrottling()
 		
 		this.game.injectIntoScenes(this.game.audio, "audio")
 		
@@ -51,23 +49,6 @@ export class Boot extends Phaser.Scene {
 	
 	private addScaler() {
 		this.game.scaler = new GameScaler(this.game, { resizeDebounceInterval: 0 })
-	}
-	
-	private addCpuThrottling() {
-		let throttle = UrlParams.getNumber("throttle")
-		if (throttle <= 0) {
-			return
-		}
-		
-		this.events.on(Phaser.Scenes.Events.PRE_UPDATE, () => {
-			let i = throttle * 1_000_000
-			let a = 0
-			while (--i) {
-				a += Math.sqrt(i)
-			}
-		})
-		
-		console.log(`⚠ ️Throttling x${throttle} is enabled ⚠`)
 	}
 	
 	private launchGlobalScene() {
