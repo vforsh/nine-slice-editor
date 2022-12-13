@@ -19,6 +19,8 @@ export class PanelsManager extends Phaser.Events.EventEmitter {
 	public exportPanel: ExportPanel
 	public imagePanel: ImagePanel
 	
+	private focusedInput: HTMLInputElement
+	
 	constructor(scene: NineSliceEditor) {
 		super()
 		
@@ -36,6 +38,35 @@ export class PanelsManager extends Phaser.Events.EventEmitter {
 		this.imagePanel = new ImagePanel(this.scene, this.leftPanels, config.image)
 		
 		this.addKeyboardCallbacks()
+		
+		this.toggleKeyboardCallbacksOnInputFocus()
+		
+		this.scene.input.on(Phaser.Input.Events.POINTER_DOWN, this.onScenePointerDown, this)
+	}
+	
+	private toggleKeyboardCallbacksOnInputFocus() {
+		Array
+			.from(document.getElementsByTagName("input"))
+			.filter(input => input.type === "text")
+			.forEach((input) => {
+				input.addEventListener("focus", this.onTextInputFocus.bind(this))
+				input.addEventListener("blur", this.onTextInputBlur.bind(this))
+			})
+	}
+	
+	private onTextInputFocus(event: FocusEvent): void {
+		this.focusedInput = event.target as HTMLInputElement
+		this.scene.keyboard.enabled = false
+	}
+	
+	private onTextInputBlur(event: FocusEvent): void {
+		this.focusedInput = null
+		this.scene.keyboard.enabled = true
+	}
+	
+	private onScenePointerDown(): void {
+		this.focusedInput?.blur()
+		this.focusedInput = null
 	}
 	
 	private addPanelContainers() {
@@ -109,6 +140,8 @@ export class PanelsManager extends Phaser.Events.EventEmitter {
 	
 	public destroy(): void {
 		super.destroy()
+		
+		this.scene.input.off(Phaser.Input.Events.POINTER_DOWN, this.onScenePointerDown, this)
 		
 		this.axesPanel.destroy()
 		this.nineSlicePanel.destroy()
