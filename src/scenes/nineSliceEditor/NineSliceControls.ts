@@ -48,11 +48,8 @@ export class NineSliceControls extends Phaser.GameObjects.Container {
 	
 	private addControls() {
 		this._top = this.scene.add.image(0, 0, "__WHITE")
-		
 		this._bottom = this.scene.add.image(0, 0, "__WHITE")
-		
 		this._left = this.scene.add.image(0, 0, "__WHITE")
-		
 		this._right = this.scene.add.image(0, 0, "__WHITE")
 		
 		this.controls = [this._top, this._bottom, this._left, this._right]
@@ -68,6 +65,11 @@ export class NineSliceControls extends Phaser.GameObjects.Container {
 			
 			this.scene.input.setDraggable(control)
 		})
+		
+		this._top.input.cursor = 'row-resize'
+		this._bottom.input.cursor = 'row-resize'
+		this._left.input.cursor = 'col-resize'
+		this._right.input.cursor = 'col-resize'
 		
 		this.add(this.controls)
 	}

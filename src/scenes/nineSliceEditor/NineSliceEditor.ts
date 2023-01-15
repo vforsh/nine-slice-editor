@@ -668,6 +668,7 @@ export class NineSliceEditor extends BaseScene {
 		this.resizeControls = new ResizeControls(this, this.config.resizeControls)
 		this.resizeControls.setDepth(NineSliceEditorDepth.RESIZE_CONTROLS)
 		this.resizeControls.on(ResizeControlsEvent.RESIZE, this.onSizeChange, this)
+		this.resizeControls.on(ResizeControlsEvent.DOUBLE_CLICK, this.showSetImageSizeWindow, this)
 		this.resizeControls.revive()
 		this.resizeControls.setImage(this.image)
 		this.add.existing(this.resizeControls)

@@ -4,9 +4,13 @@ type Vector2Like = Phaser.Types.Math.Vector2Like
 
 export enum ResizeControlsEvent {
 	RESIZE = "ResizeControls_RESIZE",
+	DOUBLE_CLICK = "ResizeControls_DOUBLE_CLICK",
 }
 
-type ResizeControl = Phaser.GameObjects.Image & { corners?: CornerControl[] }
+type ResizeControl = Phaser.GameObjects.Image & {
+	corners?: CornerControl[],
+	lastClickTs?: number,
+}
 
 type CornerControl = Phaser.GameObjects.Ellipse
 
@@ -66,6 +70,7 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 			control.setTintFill(this.INACTIVE_TINT)
 			control.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, this.onPointerOver.bind(this, control))
 			control.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, this.onPointerOut.bind(this, control))
+			control.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onPointerDown.bind(this, control))
 			control.on(Phaser.Input.Events.DRAG_START, this.onDragStart.bind(this, control))
 			control.on(Phaser.Input.Events.DRAG, this.onDrag.bind(this, control))
 			control.on(Phaser.Input.Events.DRAG_END, this.onDragEnd.bind(this, control))
@@ -74,6 +79,11 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 			
 			this.scene.input.setDraggable(control)
 		})
+		
+		this._top.input.cursor = 'row-resize'
+		this._bottom.input.cursor = 'row-resize'
+		this._left.input.cursor = 'col-resize'
+		this._right.input.cursor = 'col-resize'
 		
 		this.add(this.controls)
 	}
@@ -108,6 +118,17 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 			this.leftText.kill()
 			this.rightText.kill()
 		}
+	}
+	
+	private onPointerDown(control: ResizeControl, pointer: Phaser.Input.Pointer): void {
+		let now = Date.now()
+		
+		let timeBetweenClicks = now - (control.lastClickTs ?? 0)
+		if (timeBetweenClicks <= 300) {
+			this.emit(ResizeControlsEvent.DOUBLE_CLICK, this)
+		}
+		
+		control.lastClickTs = now
 	}
 	
 	private onDragStart(control: ResizeControl): void {

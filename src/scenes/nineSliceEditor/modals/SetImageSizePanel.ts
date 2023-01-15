@@ -1,4 +1,5 @@
 import { ModalPanel } from "./ModalPanel"
+import { InputBindingApi } from "@tweakpane/core"
 
 export interface SetImageSizePanelConfig {
 	width: number
@@ -9,13 +10,27 @@ export interface SetImageSizePanelConfig {
 
 export class SetImageSizePanel extends ModalPanel<SetImageSizePanelConfig> {
 	
+	private widthInput: InputBindingApi<unknown, number>
+	private heightInput: InputBindingApi<unknown, number>
+	
 	constructor(scene: Phaser.Scene, config: SetImageSizePanelConfig) {
 		super(scene, "Set Image Size")
 		
 		this.config = config
 		
-		this.panel.addInput(this.config, "width", { step: 1, min: this.config.minWidth, max: 2000 })
-		this.panel.addInput(this.config, "height", { step: 1, min: this.config.minHeight, max: 2000 })
+		this.widthInput = this.panel.addInput(this.config, "width", { step: 1, min: this.config.minWidth, max: 2000 })
+		this.widthInput.controller_.view.element.addEventListener('wheel', ({ deltaX, deltaY, shiftKey }) => {
+			let delta = shiftKey ? -Math.sign(deltaX) * 10 : -Math.sign(deltaY)
+			this.config.width = Phaser.Math.Clamp(this.config.width + delta, this.config.minWidth, 2000)
+			this.widthInput.refresh()
+		})
+		
+		this.heightInput = this.panel.addInput(this.config, "height", { step: 1, min: this.config.minHeight, max: 2000 })
+		this.heightInput.controller_.view.element.addEventListener('wheel', ({ deltaX, deltaY, shiftKey }) => {
+			let delta = shiftKey ? -Math.sign(deltaX) * 10 : -Math.sign(deltaY)
+			this.config.height = Phaser.Math.Clamp(this.config.height + delta, this.config.minWidth, 2000)
+			this.heightInput.refresh()
+		})
 		
 		this.addCancelButton()
 		this.addOkButton()
