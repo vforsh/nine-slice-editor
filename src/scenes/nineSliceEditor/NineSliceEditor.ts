@@ -594,7 +594,6 @@ export class NineSliceEditor extends BaseScene {
 	
 	private addBackground() {
 		this.background = this.add.image(0, 0, "__WHITE")
-		this.size(this.background, ScaleType.FILL)
 		this.pin(this.background, 0.5, 0.5)
 	}
 	
@@ -777,6 +776,8 @@ export class NineSliceEditor extends BaseScene {
 	
 	private resetCameraZoom() {
 		this.cameras.main.zoom = 1
+		this.resizeBackround()
+		this.resizeAxes()
 	}
 	
 	private setCameraMaxZoom(): void {
@@ -826,6 +827,9 @@ export class NineSliceEditor extends BaseScene {
 		let k = pointer.event.shiftKey ? 2 : 1
 		let delta = Phaser.Math.Sign(dy) * -0.1 * k
 		camera.zoom = Math.max(0.1, camera.zoom + delta)
+		
+		this.resizeBackround()
+		this.resizeAxes()
 	}
 	
 	private onPointerGameOut(): void {
@@ -835,13 +839,25 @@ export class NineSliceEditor extends BaseScene {
 	public resize(): void {
 		super.resize()
 		
+		this.resizeBackround()
+		this.resizeAxes()
+		this.atlasFramePicker?.resize()
+	}
+	
+	private resizeAxes() {
+		let cameraZoom = this.cameras.main.zoom
+		
 		this.axes?.redraw({
-			width: Config.GAME_WIDTH,
-			height: Config.GAME_HEIGHT,
+			width: Config.GAME_WIDTH / cameraZoom,
+			height: Config.GAME_HEIGHT / cameraZoom,
 			...this.config.axes,
 		})
-		
-		this.atlasFramePicker?.resize()
+	}
+	
+	private resizeBackround() {
+		let cameraZoom = this.cameras.main.zoom
+		this.background.displayWidth = Config.GAME_WIDTH / cameraZoom
+		this.background.displayHeight = Config.GAME_HEIGHT / cameraZoom
 	}
 	
 	public onShutdown() {

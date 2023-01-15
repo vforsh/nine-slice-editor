@@ -1,6 +1,6 @@
 {
 	"content": {
-		"content": "0123456789"
+		"content": "0123456789↕↔"
 	},
 	"font": {
 		"family": "Verdana",
@@ -66,14 +66,14 @@
 		"method": "row"
 	},
 	"import": {
-		"project": "C:/Users/yafor/YandexDisk/nine-slice-editor/dev/assets/fonts/bitmap/axes-digits.project.json",
+		"project": "dev/assets/fonts/bitmap/axes-digits.project.json",
 		"custom": ""
 	},
 	"export": {
 		"name": "axes-digits",
 		"type": "json",
-		"config": "",
-		"texture": "",
+		"config": "dev/assets/fonts/bitmap/axes-digits.json",
+		"texture": "dev/assets/fonts/bitmap/axes-digits.png",
 		"texturePacker": ""
 	},
 	"preview": {

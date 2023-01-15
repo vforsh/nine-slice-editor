@@ -55,8 +55,8 @@ export class Axes extends Phaser.GameObjects.Container {
 	}
 	
 	private drawXAxis(options: AxesOptions) {
-		let left = -this.axisLength / 2
-		let right = this.axisLength / 2
+		let left = -options.width / 2
+		let right = options.width / 2
 		this.graphics.lineBetween(left, 0, right, 0)
 		
 		let textTint = rgbaToNumber(options.color)
@@ -81,8 +81,8 @@ export class Axes extends Phaser.GameObjects.Container {
 	}
 	
 	private drawYAxis(options: AxesOptions) {
-		let top = -this.axisLength / 2
-		let bottom = this.axisLength / 2
+		let top = -options.height / 2
+		let bottom = options.height / 2
 		this.graphics.lineBetween(0, top, 0, bottom)
 		
 		let textTint = rgbaToNumber(options.color)

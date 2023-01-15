@@ -330,19 +330,19 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		
 		let margin = 10
 		
-		this.topText.setText(height)
+		this.topText.setText("↕" + height)
 		this.topText.x = this._left.x + margin
 		this.topText.y = this._top.y - margin
 		
-		this.bottomText.setText(height)
+		this.bottomText.setText("↕" + height)
 		this.bottomText.x = this._right.x - margin
 		this.bottomText.y = this._bottom.y + margin
 		
-		this.leftText.setText(width)
+		this.leftText.setText("↔" + width)
 		this.leftText.x = this._left.x - margin
 		this.leftText.y = this._top.y + margin
 		
-		this.rightText.setText(width)
+		this.rightText.setText("↔" + width)
 		this.rightText.x = this._right.x + margin
 		this.rightText.y = this._bottom.y - margin
 	}
