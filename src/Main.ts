@@ -16,6 +16,7 @@ import { Howler } from "howler"
 import { NineSliceEditor } from "./scenes/nineSliceEditor/NineSliceEditor"
 import { GameStash } from "./stash/GameStash"
 import WebGLRenderer = Phaser.Renderer.WebGL.WebGLRenderer
+import { NotificationsManager } from "./NotificationsManager"
 
 export class Main extends Phaser.Game {
 	
@@ -43,6 +44,7 @@ export class Main extends Phaser.Game {
 		this.stash = new GameStash()
 		this.loadingScreen = new LoadingOverlay(this)
 		this.audio = new HowlerWrapper(this, { muteTrigger: "hidden" })
+		this.notifications = new NotificationsManager()
 		this.addScenes()
 	}
 	

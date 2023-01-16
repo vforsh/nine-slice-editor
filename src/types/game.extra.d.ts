@@ -15,6 +15,7 @@ declare module Phaser {
 		loadingScreen: import("../LoadingOverlay").LoadingOverlay
 		scaler: import("../scale/GameScaler").GameScaler
 		stash: import("../stash/GameStash").GameStash
+		notifications: import("../NotificationsManager").NotificationsManager
 		webp: boolean
 		avif: boolean
 		

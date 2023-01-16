@@ -370,6 +370,14 @@ export class NineSliceEditor extends BaseScene {
 	}
 	
 	private async onExportButtonClick() {
+		let maxWidth = this.game.canvas.width
+		let maxHeight = this.game.canvas.height
+		if (this.image.width > maxWidth || this.image.height > maxHeight) {
+			console.warn(`Image is too big! Current size ${this.image.width}x${this.image.height}, max size ${maxWidth}x${maxHeight}`)
+			this.game.notifications.notyf.error("Can't export - image is too big!")
+			return
+		}
+		
 		this.panels.exportPanel.exportButton.disabled = true
 		
 		let rt = this.createRenderTextureFromNinepatch(this.image)
