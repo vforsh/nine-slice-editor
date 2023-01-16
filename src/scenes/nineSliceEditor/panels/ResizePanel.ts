@@ -24,6 +24,9 @@ export class ResizePanel extends EditorPanel {
 			max: 50,
 		}).on("change", (e) => this.emit("change", this.config, e.presetKey, e.value))
 		
+		this.panel.addInput(this.config, "snap")
+			.on("change", (e) => this.emit("change", this.config, e.presetKey, e.value))
+		
 		this.panel.addInput(this.config, "display")
 			.on("change", (e) => this.emit("change", this.config, e.presetKey, e.value))
 	}

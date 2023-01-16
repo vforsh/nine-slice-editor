@@ -28,6 +28,7 @@ export interface ProjectConfig {
 	resizeControls: {
 		thickness: number
 		padding: number
+		snap: boolean
 		display: boolean
 	},
 	import: {
@@ -64,6 +65,7 @@ export const DEFAULT_CONFIG: ProjectConfig = Object.freeze({
 	resizeControls: {
 		padding: 10,
 		thickness: 2,
+		snap: false,
 		display: true,
 	},
 	import: {

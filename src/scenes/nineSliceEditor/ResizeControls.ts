@@ -42,6 +42,7 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 	private cornerControls: CornerControl[]
 	private image: NinePatch
 	private tempVec: Vector2Like
+	private snappingStep = 0
 	
 	constructor(scene: Phaser.Scene, options: ResizeControlsOptions) {
 		super(scene)
@@ -146,25 +147,25 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 		
 		if (control === this._top) {
 			let max = center.y - minHeight / 2
-			this._top.y = Math.min(y, max)
+			this._top.y = Phaser.Math.Snap.To(Math.min(y, max), this.snappingStep)
 			
 			let offset = center.y - this._top.y
 			this._bottom.y = center.y + offset
 		} else if (control === this._bottom) {
 			let min = center.y + minHeight / 2
-			this._bottom.y = Math.max(min, y)
+			this._bottom.y = Phaser.Math.Snap.To(Math.max(min, y), this.snappingStep)
 			
 			let offset = this._bottom.y - center.y
 			this._top.y = center.y - offset
 		} else if (control === this._left) {
 			let max = center.x - minWidth / 2
-			this._left.x = Math.min(max, x)
+			this._left.x = Phaser.Math.Snap.To(Math.min(max, x), this.snappingStep)
 			
 			let offset = center.x - this._left.x
 			this._right.x = center.x + offset
 		} else if (control === this._right) {
 			let min = center.x + minWidth / 2
-			this._right.x = Math.max(min, x)
+			this._right.x = Phaser.Math.Snap.To(Math.max(min, x), this.snappingStep)
 			
 			let offset = this._right.x - center.x
 			this._left.x = center.x - offset
@@ -391,5 +392,9 @@ export class ResizeControls extends Phaser.GameObjects.Container {
 	
 	public setPadding(padding: number) {
 		this.options.padding = padding
+	}
+	
+	public setSnapping(step: number): void {
+		this.snappingStep = step
 	}
 }

@@ -295,11 +295,24 @@ export class NineSliceEditor extends BaseScene {
 			this.axes.kill()
 		}
 		
+		if (prop === 'step' || prop === 'subSteps') {
+			this.updateSnapping()
+		}
+		
 		this.axes?.redraw({
 			width: Config.GAME_WIDTH,
 			height: Config.GAME_HEIGHT,
 			...this.config.axes,
 		})
+	}
+	
+	private updateSnapping(): void {
+		let isSnappingEnabled = this.config.resizeControls.snap
+		if (isSnappingEnabled) {
+			this.resizeControls.setSnapping(this.config.axes.step / this.config.axes.subSteps)
+		} else {
+			this.resizeControls.setSnapping(0)
+		}
 	}
 	
 	private onNineSliceSettingsChange(config: NineSliceControlsPanelConfig, prop: keyof NineSliceControlsPanelConfig): void {
@@ -345,6 +358,10 @@ export class NineSliceEditor extends BaseScene {
 			
 			case "padding":
 				this.resizeControls.setPadding(config.padding)
+				break
+			
+			case "snap":
+				this.updateSnapping()
 				break
 			
 			default:
@@ -672,6 +689,8 @@ export class NineSliceEditor extends BaseScene {
 		this.resizeControls.setImage(this.image)
 		this.add.existing(this.resizeControls)
 		this.pin(this.resizeControls, 0.5, 0.5)
+		
+		this.updateSnapping()
 	}
 	
 	private onSizeChange(size: { width: number, height: number }): void {
